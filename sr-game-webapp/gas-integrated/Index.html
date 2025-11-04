@@ -73,7 +73,7 @@
             top: 1rem;
             color: var(--primary-color);
             text-decoration: none;
-            font-size: 0.9rem;
+            font-size: 1.5rem;
             cursor: pointer;
         }
 
@@ -119,7 +119,7 @@
             font-weight: 500;
         }
 
-        .input-field, .consultation-select {
+        .input-field {
             width: 100%;
             padding: 0.875rem;
             font-size: 1rem;
@@ -128,7 +128,7 @@
             transition: all 0.2s;
         }
 
-        .input-field:focus, .consultation-select:focus {
+        .input-field:focus {
             outline: none;
             border-color: var(--primary-color);
             box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.1);
@@ -185,10 +185,14 @@
             font-weight: bold;
         }
 
-        .card-choice-group {
+        .card-choice-group, .consultation-grid {
             display: grid;
             gap: 1rem;
             margin-bottom: 1.5rem;
+        }
+
+        .consultation-grid {
+            grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
         }
 
         .card-choice-label {
@@ -247,6 +251,61 @@
         .card-choice-content {
             flex: 1;
             font-size: 1.1rem;
+        }
+
+        /* 相談内容ボタン */
+        .consultation-btn {
+            padding: 1rem;
+            background: var(--light-color);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 1rem;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .consultation-btn:hover {
+            background: #e8f0fe;
+            transform: translateY(-2px);
+        }
+
+        .consultation-btn.selected {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        /* 選択内容表示 */
+        .selection-display {
+            background: var(--light-color);
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+        }
+
+        .selection-item {
+            margin-bottom: 1rem;
+            padding: 1rem;
+            background: white;
+            border-radius: 8px;
+        }
+
+        .selection-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .selection-label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.25rem;
+        }
+
+        .selection-value {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--dark-color);
         }
 
         .btn {
@@ -477,29 +536,45 @@
             .card { padding: 1.5rem; }
             .mic-button { width: 100px; height: 100px; }
             .timer { font-size: 2rem; }
+            .consultation-grid {
+                grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <header class="header">
-            <span class="admin-link" id="adminLink">⚙️ 管理</span>
+            <a href="?page=admin" class="admin-link" title="管理画面">⚙️</a>
             <h1>🎮 社労士ゲーム</h1>
             <p class="subtitle">プレゼンテーション練習</p>
         </header>
 
         <main class="main-content">
+            <!-- ステップ0: プレイヤー登録選択 -->
+            <section id="step0" class="step active">
+                <div class="card">
+                    <h2>🎯 プレイヤー設定</h2>
+                    <p class="info-text">このブラウザで使用するプレイヤーを選択してください</p>
+                    <div id="playerRegistrationArea"></div>
+                    <button id="savePlayerSelection" class="btn btn-primary">設定を保存して開始</button>
+                </div>
+            </section>
+
             <!-- ステップ1: プレイヤー選択 -->
-            <section id="step1" class="step active">
+            <section id="step1" class="step">
                 <div class="card">
                     <h2>👤 プレイヤー選択</h2>
                     <div class="form-group">
-                        <label for="playerSelect">プレイヤー名を選択してください</label>
+                        <label for="playerSelect">今回のプレイヤーを選択してください</label>
                         <select id="playerSelect" class="input-field">
                             <option value="">選択してください...</option>
                         </select>
                     </div>
-                    <button id="nextToIndustry" class="btn btn-primary" disabled>次へ</button>
+                    <div class="button-group">
+                        <button id="resetPlayers" class="btn btn-secondary">設定変更</button>
+                        <button id="nextToIndustry" class="btn btn-primary" disabled>次へ</button>
+                    </div>
                 </div>
             </section>
 
@@ -542,9 +617,7 @@
                 <div class="card">
                     <h2>🃏 カード選択</h2>
                     <p class="info-text">提案するサービスを選択してください</p>
-                    <div class="card-choice-group" id="cardChoiceGroup">
-                        <!-- JavaScriptで動的に生成 -->
-                    </div>
+                    <div class="card-choice-group" id="cardChoiceGroup"></div>
                     <div class="button-group">
                         <button id="backToIndustry" class="btn btn-secondary">戻る</button>
                         <button id="nextToConsultation" class="btn btn-primary" disabled>次へ</button>
@@ -556,12 +629,7 @@
             <section id="step4" class="step">
                 <div class="card">
                     <h2>💬 相談内容選択</h2>
-                    <div class="form-group">
-                        <label for="consultationSelect">相談内容を選択してください</label>
-                        <select id="consultationSelect" class="consultation-select" size="10">
-                            <option value="">読み込み中...</option>
-                        </select>
-                    </div>
+                    <div class="consultation-grid" id="consultationGrid"></div>
                     <div class="button-group">
                         <button id="backToCard" class="btn btn-secondary">戻る</button>
                         <button id="nextToRecording" class="btn btn-primary" disabled>次へ</button>
@@ -573,6 +641,19 @@
             <section id="step5" class="step">
                 <div class="card">
                     <h2>🎤 プレゼンテーション録音</h2>
+                    
+                    <!-- 選択内容表示 -->
+                    <div class="selection-display">
+                        <div class="selection-item">
+                            <div class="selection-label">業界</div>
+                            <div class="selection-value" id="displayIndustry"></div>
+                        </div>
+                        <div class="selection-item">
+                            <div class="selection-label">提案サービス</div>
+                            <div class="selection-value" id="displayCard"></div>
+                        </div>
+                    </div>
+
                     <p class="info-text">マイクボタンを押して、約1.5分間のプレゼンテーションを行ってください</p>
 
                     <div class="recording-status">
@@ -614,7 +695,7 @@
                         <h2>送信完了！</h2>
                         <p>プレゼンテーションデータが保存されました。</p>
                     </div>
-                    <button id="restart" class="btn btn-primary">最初から始める</button>
+                    <button id="nextPlayer" class="btn btn-primary">次のプレイヤー</button>
                 </div>
             </section>
         </main>
@@ -632,11 +713,15 @@
     <div id="errorMessage" class="error-message" style="display: none;"></div>
 
     <script>
-        let currentStep = 1;
+        let currentStep = 0;
+        let allUsers = [];
+        let selectedPlayers = [];
+        let currentPlayerIndex = 0;
         let selectedPlayer = null;
         let selectedIndustries = [];
         let selectedCard = null;
         let selectedConsultation = null;
+        let selectedConsultationId = null;
         let transcriptText = '';
         let recognition = null;
         let recordingTimer = null;
@@ -652,6 +737,7 @@
             setupEventListeners();
             await loadUsers();
             await loadConsultations();
+            checkPlayerSettings();
         }
 
         function initializeSpeechRecognition() {
@@ -697,17 +783,15 @@
         }
 
         function setupEventListeners() {
-            // 管理画面リンク
-            document.getElementById('adminLink').addEventListener('click', () => {
-                const currentUrl = window.location.href.split('?')[0];
-                window.location.href = currentUrl + '?page=admin';
-            });
+            // ステップ0: プレイヤー登録選択
+            document.getElementById('savePlayerSelection').addEventListener('click', savePlayerSelection);
 
             // ステップ1: プレイヤー選択
             document.getElementById('playerSelect').addEventListener('change', (e) => {
                 selectedPlayer = e.target.value;
                 document.getElementById('nextToIndustry').disabled = !selectedPlayer;
             });
+            document.getElementById('resetPlayers').addEventListener('click', resetPlayerSettings);
             document.getElementById('nextToIndustry').addEventListener('click', () => goToStep(2));
 
             // ステップ2: 業界選択
@@ -725,12 +809,11 @@
             document.getElementById('nextToConsultation').addEventListener('click', () => goToStep(4));
 
             // ステップ4: 相談内容選択
-            document.getElementById('consultationSelect').addEventListener('change', (e) => {
-                selectedConsultation = e.target.value;
-                document.getElementById('nextToRecording').disabled = !selectedConsultation;
-            });
             document.getElementById('backToCard').addEventListener('click', () => goToStep(3));
-            document.getElementById('nextToRecording').addEventListener('click', () => goToStep(5));
+            document.getElementById('nextToRecording').addEventListener('click', () => {
+                updateRecordingDisplay();
+                goToStep(5);
+            });
 
             // ステップ5: 録音
             document.getElementById('micButton').addEventListener('click', toggleRecording);
@@ -741,7 +824,63 @@
             document.getElementById('submitData').addEventListener('click', submitPlayData);
 
             // ステップ6: 完了
-            document.getElementById('restart').addEventListener('click', resetApp);
+            document.getElementById('nextPlayer').addEventListener('click', nextPlayer);
+        }
+
+        function checkPlayerSettings() {
+            const saved = localStorage.getItem('selectedPlayers');
+            if (saved) {
+                selectedPlayers = JSON.parse(saved);
+                currentPlayerIndex = parseInt(localStorage.getItem('currentPlayerIndex') || '0');
+                loadPlayerSelect();
+                goToStep(1);
+            } else {
+                goToStep(0);
+            }
+        }
+
+        function savePlayerSelection() {
+            const checkboxes = document.querySelectorAll('input[name="player"]:checked');
+            if (checkboxes.length === 0) {
+                showError('少なくとも1人のプレイヤーを選択してください');
+                return;
+            }
+
+            selectedPlayers = Array.from(checkboxes).map(cb => cb.value);
+            currentPlayerIndex = 0;
+            localStorage.setItem('selectedPlayers', JSON.stringify(selectedPlayers));
+            localStorage.setItem('currentPlayerIndex', '0');
+            
+            loadPlayerSelect();
+            goToStep(1);
+        }
+
+        function resetPlayerSettings() {
+            if (confirm('プレイヤー設定をリセットしますか？')) {
+                localStorage.removeItem('selectedPlayers');
+                localStorage.removeItem('currentPlayerIndex');
+                selectedPlayers = [];
+                currentPlayerIndex = 0;
+                goToStep(0);
+                loadPlayerRegistration();
+            }
+        }
+
+        function loadPlayerSelect() {
+            const select = document.getElementById('playerSelect');
+            select.innerHTML = '<option value="">選択してください...</option>';
+            
+            selectedPlayers.forEach((playerName, index) => {
+                const option = document.createElement('option');
+                option.value = playerName;
+                option.textContent = playerName;
+                if (index === currentPlayerIndex) {
+                    option.selected = true;
+                    selectedPlayer = playerName;
+                    document.getElementById('nextToIndustry').disabled = false;
+                }
+                select.appendChild(option);
+            });
         }
 
         async function loadUsers() {
@@ -749,14 +888,8 @@
                 showLoading(true);
                 google.script.run
                     .withSuccessHandler((users) => {
-                        const select = document.getElementById('playerSelect');
-                        select.innerHTML = '<option value="">選択してください...</option>';
-                        users.forEach(user => {
-                            const option = document.createElement('option');
-                            option.value = user.name;
-                            option.textContent = user.name;
-                            select.appendChild(option);
-                        });
+                        allUsers = users;
+                        loadPlayerRegistration();
                         showLoading(false);
                     })
                     .withFailureHandler((error) => {
@@ -772,23 +905,52 @@
             }
         }
 
+        function loadPlayerRegistration() {
+            const area = document.getElementById('playerRegistrationArea');
+            if (!allUsers || allUsers.length === 0) {
+                area.innerHTML = '<p class="info-text">ユーザーが登録されていません</p>';
+                return;
+            }
+
+            const saved = localStorage.getItem('selectedPlayers');
+            const savedPlayers = saved ? JSON.parse(saved) : [];
+
+            area.innerHTML = '<div class="checkbox-group">' + 
+                allUsers.map(user => `
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="player" value="${user.name}" ${savedPlayers.includes(user.name) ? 'checked' : ''}>
+                        <span class="checkbox-custom"></span>
+                        ${user.name}
+                    </label>
+                `).join('') +
+                '</div>';
+        }
+
         async function loadConsultations() {
             try {
                 google.script.run
                     .withSuccessHandler((consultations) => {
                         console.log('相談内容読み込み成功:', consultations);
-                        const select = document.getElementById('consultationSelect');
-                        select.innerHTML = '<option value="">選択してください...</option>';
-                        consultations.forEach(c => {
-                            const option = document.createElement('option');
-                            option.value = c.text;
-                            option.textContent = `${c.id}: ${c.text}`;
-                            select.appendChild(option);
+                        const grid = document.getElementById('consultationGrid');
+                        grid.innerHTML = consultations.map(c => `
+                            <button class="consultation-btn" data-id="${c.id}" data-text="${c.text}">
+                                ${c.id}
+                            </button>
+                        `).join('');
+
+                        grid.querySelectorAll('.consultation-btn').forEach(btn => {
+                            btn.addEventListener('click', (e) => {
+                                grid.querySelectorAll('.consultation-btn').forEach(b => b.classList.remove('selected'));
+                                btn.classList.add('selected');
+                                selectedConsultationId = btn.dataset.id;
+                                selectedConsultation = btn.dataset.text;
+                                document.getElementById('nextToRecording').disabled = false;
+                            });
                         });
                     })
                     .withFailureHandler((error) => {
                         console.error('相談内容読み込みエラー:', error);
-                        showError('相談内容の読み込みに失敗しました。initializeSpreadsheet()を実行してください。');
+                        showError('相談内容の読み込みに失敗しました');
                     })
                     .getAllConsultations();
             } catch (error) {
@@ -801,7 +963,6 @@
             try {
                 google.script.run
                     .withSuccessHandler((cards) => {
-                        console.log('カード読み込み成功:', cards);
                         const container = document.getElementById('cardChoiceGroup');
                         container.innerHTML = cards.map(card => `
                             <label class="card-choice-label">
@@ -819,12 +980,10 @@
                         });
                     })
                     .withFailureHandler((error) => {
-                        console.error('カード読み込みエラー:', error);
                         showError('カードの読み込みに失敗しました');
                     })
                     .getRandomCardNames();
             } catch (error) {
-                console.error('カード読み込みエラー:', error);
                 showError('カードの読み込みに失敗しました');
             }
         }
@@ -834,6 +993,11 @@
                 document.querySelectorAll('input[name="industry"]:checked')
             ).map(cb => cb.value);
             document.getElementById('nextToCard').disabled = selectedIndustries.length === 0;
+        }
+
+        function updateRecordingDisplay() {
+            document.getElementById('displayIndustry').textContent = selectedIndustries.join(', ');
+            document.getElementById('displayCard').textContent = selectedCard;
         }
 
         function goToStep(step) {
@@ -927,44 +1091,42 @@
                 showLoading(true);
                 google.script.run
                     .withSuccessHandler(() => {
-                        console.log('データ送信成功');
                         showLoading(false);
                         goToStep(6);
                     })
                     .withFailureHandler((error) => {
                         showLoading(false);
-                        console.error('データ送信エラー:', error);
                         showError('データの送信に失敗しました');
                     })
                     .savePlayData(playData);
             } catch (error) {
                 showLoading(false);
-                console.error('データ送信エラー:', error);
                 showError('データの送信に失敗しました');
             }
         }
 
-        function resetApp() {
-            currentStep = 1;
-            selectedPlayer = null;
+        function nextPlayer() {
+            // 次のプレイヤーへ
+            currentPlayerIndex = (currentPlayerIndex + 1) % selectedPlayers.length;
+            localStorage.setItem('currentPlayerIndex', currentPlayerIndex.toString());
+
+            // リセット
             selectedIndustries = [];
             selectedCard = null;
             selectedConsultation = null;
+            selectedConsultationId = null;
             transcriptText = '';
 
-            document.getElementById('playerSelect').value = '';
             document.querySelectorAll('input[name="industry"]').forEach(cb => cb.checked = false);
-            document.getElementById('consultationSelect').value = '';
             document.getElementById('transcriptText').textContent = '';
             document.getElementById('timer').textContent = '00:00';
             document.getElementById('progressFill').style.width = '0%';
-
-            document.getElementById('nextToIndustry').disabled = true;
             document.getElementById('nextToCard').disabled = true;
             document.getElementById('nextToConsultation').disabled = true;
             document.getElementById('nextToRecording').disabled = true;
             document.getElementById('submitData').disabled = true;
 
+            loadPlayerSelect();
             goToStep(1);
         }
 
