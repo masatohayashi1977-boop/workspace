@@ -563,23 +563,26 @@ function generateManagementInsight(individualFeedbacks, userGroups, totalHours, 
 
 // Gemini APIを呼び出し
 function callGeminiAPI(prompt) {
-  // Gemini 2.5 Flash Latest を使用（Thinking機能なし）
-  const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-latest:generateContent?key=' + CONFIG.GEMINI_API_KEY;
+  // Gemini 2.5 Flash を使用
+  const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' + CONFIG.GEMINI_API_KEY;
+
+  // プロンプトの先頭に直接回答の指示を追加
+  const enhancedPrompt = '【指示】以下の業務データに基づき、フィードバック文を直接出力してください。思考プロセス、分析過程、内部推論は一切出力しないでください。\n\n' + prompt;
 
   const payload = {
     contents: [{
       parts: [{
-        text: prompt
+        text: enhancedPrompt
       }]
     }],
     systemInstruction: {
       parts: [{
-        text: 'あなたは業務フィードバックを提供するアシスタントです。思考プロセスや分析の過程は一切出力せず、完成したフィードバック文のみを直接出力してください。内部の推論や考察は含めないでください。'
+        text: 'あなたは業務フィードバックを提供するアシスタントです。ユーザーに見せるフィードバック文のみを出力してください。思考プロセス（<thinking>タグなど）、分析の過程、内部の推論は絶対に出力しないでください。最終的な回答のみを直接出力してください。'
       }]
     },
     generationConfig: {
       temperature: 0.7,
-      maxOutputTokens: 4096,  // トークン数をさらに増やす
+      maxOutputTokens: 8192,  // トークン数を大幅に増やす
       topP: 0.95,
       topK: 40,
       responseMimeType: 'text/plain'
