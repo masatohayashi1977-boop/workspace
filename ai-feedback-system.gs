@@ -47,12 +47,12 @@ function sendDailyFeedback() {
 
     // 個々のユーザーにフィードバックを送信
     const individualFeedbacks = [];
-    for (const userName in userGroups) {
-      const userData = userGroups[userName];
-      const user = users.find(u => u.name === userName);
+    for (const userId in userGroups) {
+      const userData = userGroups[userId];
+      const user = users.find(u => u.id === userId);
 
       if (!user || !user.email) {
-        Logger.log('ユーザー ' + userName + ' のメールアドレスが見つかりません');
+        Logger.log('ユーザー ' + userId + ' のメールアドレスが見つかりません');
         continue;
       }
 
@@ -163,7 +163,7 @@ function getYesterdayData(dateString) {
 
       result.push({
         date: formattedDate,
-        userName: row[nameIndex],  // 修正: userIdではなくuserNameに変更
+        userId: row[nameIndex],  // 集計シートの「氏名」列にはユーザーIDが入っている
         type: row[typeIndex],
         customer: row[customerIndex],
         content: row[contentIndex],
@@ -325,15 +325,15 @@ function groupDataByUser(data) {
   const grouped = {};
 
   for (const record of data) {
-    const userName = record.userName;  // 修正: userIdではなくuserNameを使用
-    if (!userName) {
+    const userId = record.userId;  // 集計シートの「氏名」列にはユーザーIDが入っている
+    if (!userId) {
       continue;
     }
 
-    if (!grouped[userName]) {
-      grouped[userName] = [];
+    if (!grouped[userId]) {
+      grouped[userId] = [];
     }
-    grouped[userName].push(record);
+    grouped[userId].push(record);
   }
 
   Logger.log('グループ化完了: ' + Object.keys(grouped).length + 'ユーザー');
@@ -647,17 +647,17 @@ function sendAdminSummary(dateString, individualFeedbacks, userGroups, types, cu
   html += '<li>対象ユーザー数: ' + userCount + '人</li>';
 
   let totalTaskCount = 0;
-  for (const userName in userGroups) {
-    if (userGroups.hasOwnProperty(userName) && Array.isArray(userGroups[userName])) {
-      totalTaskCount += userGroups[userName].length;
+  for (const userId in userGroups) {
+    if (userGroups.hasOwnProperty(userId) && Array.isArray(userGroups[userId])) {
+      totalTaskCount += userGroups[userId].length;
     }
   }
   html += '<li>総タスク数: ' + totalTaskCount + '件</li>';
 
   let totalHours = 0;
-  for (const userName in userGroups) {
-    if (userGroups.hasOwnProperty(userName)) {
-      totalHours += calculateTotalDuration(userGroups[userName]);
+  for (const userId in userGroups) {
+    if (userGroups.hasOwnProperty(userId)) {
+      totalHours += calculateTotalDuration(userGroups[userId]);
     }
   }
   html += '<li>総稼働時間: ' + totalHours.toFixed(2) + '時間</li>';
@@ -795,12 +795,12 @@ function testFeedbackToday() {
   Logger.log('ユーザーグループ数: ' + Object.keys(userGroups).length);
 
   // 最初のユーザーのみテスト送信
-  for (const userName in userGroups) {
-    const userData = userGroups[userName];
-    const user = users.find(u => u.name === userName);
+  for (const userId in userGroups) {
+    const userData = userGroups[userId];
+    const user = users.find(u => u.id === userId);
 
     if (!user || !user.email) {
-      Logger.log('ユーザー ' + userName + ' のメールアドレスが見つかりません');
+      Logger.log('ユーザー ' + userId + ' のメールアドレスが見つかりません');
       continue;
     }
 
