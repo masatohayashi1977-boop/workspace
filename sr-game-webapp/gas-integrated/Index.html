@@ -8,7 +8,6 @@
     <title>社労士ゲーム</title>
 
     <style>
-        /* リセットとベーススタイル */
         * {
             margin: 0;
             padding: 0;
@@ -186,7 +185,6 @@
             font-weight: bold;
         }
 
-        /* カード選択用のラジオボタンスタイル */
         .card-choice-group {
             display: grid;
             gap: 1rem;
@@ -219,13 +217,6 @@
             font-weight: 600;
         }
 
-        .card-choice-label input[type="radio"]:checked {
-            & ~ .card-choice-custom {
-                background: var(--primary-color);
-                border-color: var(--primary-color);
-            }
-        }
-
         .card-choice-custom {
             width: 24px;
             height: 24px;
@@ -238,6 +229,11 @@
             background: white;
             transition: all 0.2s;
             flex-shrink: 0;
+        }
+
+        .card-choice-label input[type="radio"]:checked ~ .card-choice-custom {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
         }
 
         .card-choice-label input[type="radio"]:checked ~ .card-choice-custom::after {
@@ -536,30 +532,13 @@
                     </div>
                     <div class="button-group">
                         <button id="backToPlayer" class="btn btn-secondary">戻る</button>
-                        <button id="nextToConsultation" class="btn btn-primary" disabled>次へ</button>
-                    </div>
-                </div>
-            </section>
-
-            <!-- ステップ3: 相談内容選択 -->
-            <section id="step3" class="step">
-                <div class="card">
-                    <h2>💬 相談内容選択</h2>
-                    <div class="form-group">
-                        <label for="consultationSelect">相談内容を選択してください</label>
-                        <select id="consultationSelect" class="consultation-select" size="10">
-                            <option value="">選択してください...</option>
-                        </select>
-                    </div>
-                    <div class="button-group">
-                        <button id="backToIndustry" class="btn btn-secondary">戻る</button>
                         <button id="nextToCard" class="btn btn-primary" disabled>次へ</button>
                     </div>
                 </div>
             </section>
 
-            <!-- ステップ4: カード選択 -->
-            <section id="step4" class="step">
+            <!-- ステップ3: カード選択 -->
+            <section id="step3" class="step">
                 <div class="card">
                     <h2>🃏 カード選択</h2>
                     <p class="info-text">提案するサービスを選択してください</p>
@@ -567,7 +546,24 @@
                         <!-- JavaScriptで動的に生成 -->
                     </div>
                     <div class="button-group">
-                        <button id="backToConsultation" class="btn btn-secondary">戻る</button>
+                        <button id="backToIndustry" class="btn btn-secondary">戻る</button>
+                        <button id="nextToConsultation" class="btn btn-primary" disabled>次へ</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ステップ4: 相談内容選択 -->
+            <section id="step4" class="step">
+                <div class="card">
+                    <h2>💬 相談内容選択</h2>
+                    <div class="form-group">
+                        <label for="consultationSelect">相談内容を選択してください</label>
+                        <select id="consultationSelect" class="consultation-select" size="10">
+                            <option value="">読み込み中...</option>
+                        </select>
+                    </div>
+                    <div class="button-group">
+                        <button id="backToCard" class="btn btn-secondary">戻る</button>
                         <button id="nextToRecording" class="btn btn-primary" disabled>次へ</button>
                     </div>
                 </div>
@@ -604,7 +600,7 @@
                     </div>
 
                     <div class="button-group">
-                        <button id="backToCard" class="btn btn-secondary">戻る</button>
+                        <button id="backToConsultation" class="btn btn-secondary">戻る</button>
                         <button id="submitData" class="btn btn-success" disabled>送信</button>
                     </div>
                 </div>
@@ -639,8 +635,8 @@
         let currentStep = 1;
         let selectedPlayer = null;
         let selectedIndustries = [];
-        let selectedConsultation = null;
         let selectedCard = null;
+        let selectedConsultation = null;
         let transcriptText = '';
         let recognition = null;
         let recordingTimer = null;
@@ -707,44 +703,44 @@
                 window.location.href = currentUrl + '?page=admin';
             });
 
-            // ステップ1
+            // ステップ1: プレイヤー選択
             document.getElementById('playerSelect').addEventListener('change', (e) => {
                 selectedPlayer = e.target.value;
                 document.getElementById('nextToIndustry').disabled = !selectedPlayer;
             });
             document.getElementById('nextToIndustry').addEventListener('click', () => goToStep(2));
 
-            // ステップ2
+            // ステップ2: 業界選択
             document.querySelectorAll('input[name="industry"]').forEach(cb => {
                 cb.addEventListener('change', updateIndustrySelection);
             });
             document.getElementById('backToPlayer').addEventListener('click', () => goToStep(1));
-            document.getElementById('nextToConsultation').addEventListener('click', () => goToStep(3));
-
-            // ステップ3
-            document.getElementById('consultationSelect').addEventListener('change', (e) => {
-                selectedConsultation = e.target.value;
-                document.getElementById('nextToCard').disabled = !selectedConsultation;
-            });
-            document.getElementById('backToIndustry').addEventListener('click', () => goToStep(2));
             document.getElementById('nextToCard').addEventListener('click', async () => {
                 await loadRandomCards();
-                goToStep(4);
+                goToStep(3);
             });
 
-            // ステップ4
-            document.getElementById('backToConsultation').addEventListener('click', () => goToStep(3));
+            // ステップ3: カード選択
+            document.getElementById('backToIndustry').addEventListener('click', () => goToStep(2));
+            document.getElementById('nextToConsultation').addEventListener('click', () => goToStep(4));
+
+            // ステップ4: 相談内容選択
+            document.getElementById('consultationSelect').addEventListener('change', (e) => {
+                selectedConsultation = e.target.value;
+                document.getElementById('nextToRecording').disabled = !selectedConsultation;
+            });
+            document.getElementById('backToCard').addEventListener('click', () => goToStep(3));
             document.getElementById('nextToRecording').addEventListener('click', () => goToStep(5));
 
-            // ステップ5
+            // ステップ5: 録音
             document.getElementById('micButton').addEventListener('click', toggleRecording);
-            document.getElementById('backToCard').addEventListener('click', () => {
+            document.getElementById('backToConsultation').addEventListener('click', () => {
                 if (!isRecording()) goToStep(4);
                 else showError('録音を停止してから戻ってください');
             });
             document.getElementById('submitData').addEventListener('click', submitPlayData);
 
-            // ステップ6
+            // ステップ6: 完了
             document.getElementById('restart').addEventListener('click', resetApp);
         }
 
@@ -765,11 +761,13 @@
                     })
                     .withFailureHandler((error) => {
                         showLoading(false);
+                        console.error('ユーザー読み込みエラー:', error);
                         showError('ユーザーリストの読み込みに失敗しました');
                     })
                     .getAllUsers();
             } catch (error) {
                 showLoading(false);
+                console.error('ユーザー読み込みエラー:', error);
                 showError('ユーザーリストの読み込みに失敗しました');
             }
         }
@@ -778,6 +776,7 @@
             try {
                 google.script.run
                     .withSuccessHandler((consultations) => {
+                        console.log('相談内容読み込み成功:', consultations);
                         const select = document.getElementById('consultationSelect');
                         select.innerHTML = '<option value="">選択してください...</option>';
                         consultations.forEach(c => {
@@ -788,10 +787,12 @@
                         });
                     })
                     .withFailureHandler((error) => {
-                        showError('相談内容の読み込みに失敗しました');
+                        console.error('相談内容読み込みエラー:', error);
+                        showError('相談内容の読み込みに失敗しました。initializeSpreadsheet()を実行してください。');
                     })
                     .getAllConsultations();
             } catch (error) {
+                console.error('相談内容読み込みエラー:', error);
                 showError('相談内容の読み込みに失敗しました');
             }
         }
@@ -800,6 +801,7 @@
             try {
                 google.script.run
                     .withSuccessHandler((cards) => {
+                        console.log('カード読み込み成功:', cards);
                         const container = document.getElementById('cardChoiceGroup');
                         container.innerHTML = cards.map(card => `
                             <label class="card-choice-label">
@@ -812,15 +814,17 @@
                         container.querySelectorAll('input[name="card"]').forEach(radio => {
                             radio.addEventListener('change', (e) => {
                                 selectedCard = e.target.value;
-                                document.getElementById('nextToRecording').disabled = false;
+                                document.getElementById('nextToConsultation').disabled = false;
                             });
                         });
                     })
                     .withFailureHandler((error) => {
+                        console.error('カード読み込みエラー:', error);
                         showError('カードの読み込みに失敗しました');
                     })
                     .getRandomCardNames();
             } catch (error) {
+                console.error('カード読み込みエラー:', error);
                 showError('カードの読み込みに失敗しました');
             }
         }
@@ -829,7 +833,7 @@
             selectedIndustries = Array.from(
                 document.querySelectorAll('input[name="industry"]:checked')
             ).map(cb => cb.value);
-            document.getElementById('nextToConsultation').disabled = selectedIndustries.length === 0;
+            document.getElementById('nextToCard').disabled = selectedIndustries.length === 0;
         }
 
         function goToStep(step) {
@@ -906,7 +910,7 @@
         }
 
         async function submitPlayData() {
-            if (!selectedPlayer || !selectedIndustries.length || !selectedConsultation || !selectedCard || !transcriptText.trim()) {
+            if (!selectedPlayer || !selectedIndustries.length || !selectedCard || !selectedConsultation || !transcriptText.trim()) {
                 showError('必要な情報が不足しています');
                 return;
             }
@@ -923,16 +927,19 @@
                 showLoading(true);
                 google.script.run
                     .withSuccessHandler(() => {
+                        console.log('データ送信成功');
                         showLoading(false);
                         goToStep(6);
                     })
                     .withFailureHandler((error) => {
                         showLoading(false);
+                        console.error('データ送信エラー:', error);
                         showError('データの送信に失敗しました');
                     })
                     .savePlayData(playData);
             } catch (error) {
                 showLoading(false);
+                console.error('データ送信エラー:', error);
                 showError('データの送信に失敗しました');
             }
         }
@@ -941,8 +948,8 @@
             currentStep = 1;
             selectedPlayer = null;
             selectedIndustries = [];
-            selectedConsultation = null;
             selectedCard = null;
+            selectedConsultation = null;
             transcriptText = '';
 
             document.getElementById('playerSelect').value = '';
@@ -953,8 +960,8 @@
             document.getElementById('progressFill').style.width = '0%';
 
             document.getElementById('nextToIndustry').disabled = true;
-            document.getElementById('nextToConsultation').disabled = true;
             document.getElementById('nextToCard').disabled = true;
+            document.getElementById('nextToConsultation').disabled = true;
             document.getElementById('nextToRecording').disabled = true;
             document.getElementById('submitData').disabled = true;
 
