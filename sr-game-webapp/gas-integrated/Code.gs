@@ -222,13 +222,13 @@ function doGet(e) {
   const page = e.parameter.page || 'index';
 
   if (page === 'admin') {
-    return HtmlService.createTemplateFromFile('Admin')
+    return HtmlService.createTemplateFromFile('admin')
       .evaluate()
       .setTitle('管理者画面 - 社労士ゲーム')
       .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
   }
 
-  return HtmlService.createTemplateFromFile('Index')
+  return HtmlService.createTemplateFromFile('index')
     .evaluate()
     .setTitle('社労士ゲーム')
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
