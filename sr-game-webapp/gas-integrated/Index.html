@@ -36,8 +36,6 @@
             line-height: 1.6;
             min-height: 100vh;
             overflow-x: hidden;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
         }
 
         .container {
@@ -48,7 +46,6 @@
             flex-direction: column;
         }
 
-        /* ヘッダー */
         .header {
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
@@ -78,15 +75,14 @@
             color: var(--primary-color);
             text-decoration: none;
             font-size: 0.9rem;
+            cursor: pointer;
         }
 
-        /* メインコンテンツ */
         .main-content {
             flex: 1;
             padding: 1.5rem;
         }
 
-        /* ステップの表示/非表示 */
         .step {
             display: none;
             animation: fadeIn 0.3s ease-in;
@@ -97,17 +93,10 @@
         }
 
         @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        /* カード */
         .card {
             background: white;
             border-radius: 16px;
@@ -121,7 +110,6 @@
             color: var(--dark-color);
         }
 
-        /* フォーム要素 */
         .form-group {
             margin-bottom: 1.5rem;
         }
@@ -129,29 +117,24 @@
         .form-group label {
             display: block;
             margin-bottom: 0.5rem;
-            color: var(--text-color);
             font-weight: 500;
         }
 
-        .input-field {
+        .input-field, .consultation-select {
             width: 100%;
             padding: 0.875rem;
             font-size: 1rem;
             border: 2px solid var(--border-color);
             border-radius: 8px;
-            background: white;
             transition: all 0.2s;
-            -webkit-appearance: none;
-            appearance: none;
         }
 
-        .input-field:focus {
+        .input-field:focus, .consultation-select:focus {
             outline: none;
             border-color: var(--primary-color);
             box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.1);
         }
 
-        /* チェックボックスグループ */
         .checkbox-group {
             margin-bottom: 1.5rem;
         }
@@ -203,7 +186,73 @@
             font-weight: bold;
         }
 
-        /* ボタン */
+        /* カード選択用のラジオボタンスタイル */
+        .card-choice-group {
+            display: grid;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-choice-label {
+            display: flex;
+            align-items: center;
+            padding: 1.5rem;
+            background: var(--light-color);
+            border: 3px solid var(--border-color);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .card-choice-label:hover {
+            background: #e8f0fe;
+            transform: translateY(-2px);
+        }
+
+        .card-choice-label input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+        }
+
+        .card-choice-label input[type="radio"]:checked ~ .card-choice-content {
+            font-weight: 600;
+        }
+
+        .card-choice-label input[type="radio"]:checked {
+            & ~ .card-choice-custom {
+                background: var(--primary-color);
+                border-color: var(--primary-color);
+            }
+        }
+
+        .card-choice-custom {
+            width: 24px;
+            height: 24px;
+            border: 2px solid var(--border-color);
+            border-radius: 50%;
+            margin-right: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .card-choice-label input[type="radio"]:checked ~ .card-choice-custom::after {
+            content: "";
+            width: 10px;
+            height: 10px;
+            background: white;
+            border-radius: 50%;
+        }
+
+        .card-choice-content {
+            flex: 1;
+            font-size: 1.1rem;
+        }
+
         .btn {
             padding: 0.875rem 1.75rem;
             font-size: 1rem;
@@ -213,9 +262,6 @@
             cursor: pointer;
             transition: all 0.2s;
             width: 100%;
-            text-align: center;
-            display: inline-block;
-            -webkit-tap-highlight-color: transparent;
         }
 
         .btn:active {
@@ -227,26 +273,14 @@
             color: white;
         }
 
-        .btn-primary:hover:not(:disabled) {
-            background: #3367d6;
-        }
-
         .btn-secondary {
             background: var(--light-color);
             color: var(--text-color);
         }
 
-        .btn-secondary:hover:not(:disabled) {
-            background: var(--border-color);
-        }
-
         .btn-success {
             background: var(--secondary-color);
             color: white;
-        }
-
-        .btn-success:hover:not(:disabled) {
-            background: #2d8e47;
         }
 
         .btn:disabled {
@@ -261,7 +295,6 @@
             margin-top: 1.5rem;
         }
 
-        /* 録音セクション */
         .recording-status {
             text-align: center;
             margin-bottom: 2rem;
@@ -280,29 +313,23 @@
             animation: pulse 1.5s infinite;
         }
 
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
         .recording-indicator.recording .status-text {
             color: white;
         }
 
-        @keyframes pulse {
-            0%, 100% {
-                opacity: 1;
-            }
-            50% {
-                opacity: 0.7;
-            }
-        }
-
         .status-text {
             font-weight: 600;
-            color: var(--text-color);
         }
 
         .timer {
             font-size: 2.5rem;
             font-weight: bold;
             font-variant-numeric: tabular-nums;
-            color: var(--dark-color);
             margin-bottom: 1rem;
         }
 
@@ -325,7 +352,6 @@
             background: var(--danger-color);
         }
 
-        /* マイクボタン */
         .mic-button-container {
             display: flex;
             justify-content: center;
@@ -345,15 +371,6 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        .mic-button:hover {
-            transform: scale(1.05);
-        }
-
-        .mic-button:active {
-            transform: scale(0.95);
         }
 
         .mic-button.recording {
@@ -361,17 +378,11 @@
             animation: pulse 1.5s infinite;
         }
 
-        /* 文字起こし表示 */
         .transcript-container {
             margin-top: 1.5rem;
             padding: 1rem;
             background: var(--light-color);
             border-radius: 8px;
-        }
-
-        .transcript-container h3 {
-            margin-bottom: 0.75rem;
-            font-size: 1.1rem;
         }
 
         .transcript-text {
@@ -385,7 +396,6 @@
             word-wrap: break-word;
         }
 
-        /* 完了画面 */
         .success-message {
             text-align: center;
             padding: 2rem 0;
@@ -406,15 +416,10 @@
         }
 
         @keyframes scaleIn {
-            from {
-                transform: scale(0);
-            }
-            to {
-                transform: scale(1);
-            }
+            from { transform: scale(0); }
+            to { transform: scale(1); }
         }
 
-        /* フッター */
         .footer {
             background: rgba(255, 255, 255, 0.95);
             padding: 1rem;
@@ -423,7 +428,6 @@
             font-size: 0.875rem;
         }
 
-        /* ローディングオーバーレイ */
         .loading-overlay {
             position: fixed;
             top: 0;
@@ -450,12 +454,9 @@
         }
 
         @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
+            to { transform: rotate(360deg); }
         }
 
-        /* エラーメッセージ */
         .error-message {
             position: fixed;
             top: 20px;
@@ -468,18 +469,6 @@
             box-shadow: var(--shadow-lg);
             z-index: 1001;
             max-width: 90%;
-            animation: slideDown 0.3s ease-out;
-        }
-
-        @keyframes slideDown {
-            from {
-                opacity: 0;
-                transform: translateX(-50%) translateY(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(-50%) translateY(0);
-            }
         }
 
         .info-text {
@@ -487,60 +476,22 @@
             margin-bottom: 1rem;
         }
 
-        /* レスポンシブ対応 */
         @media (max-width: 480px) {
-            .header h1 {
-                font-size: 1.5rem;
-            }
-
-            .card {
-                padding: 1.5rem;
-            }
-
-            .card h2 {
-                font-size: 1.3rem;
-            }
-
-            .main-content {
-                padding: 1rem;
-            }
-
-            .mic-button {
-                width: 100px;
-                height: 100px;
-            }
-
-            .timer {
-                font-size: 2rem;
-            }
-        }
-
-        /* タッチデバイス用の調整 */
-        @media (hover: none) {
-            .btn:hover {
-                transform: none;
-            }
-
-            .mic-button:hover {
-                transform: none;
-            }
-
-            .checkbox-label:hover {
-                background: var(--light-color);
-            }
+            .header h1 { font-size: 1.5rem; }
+            .card { padding: 1.5rem; }
+            .mic-button { width: 100px; height: 100px; }
+            .timer { font-size: 2rem; }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- ヘッダー -->
         <header class="header">
-            <a href="?page=admin" class="admin-link">⚙️ 管理</a>
+            <span class="admin-link" id="adminLink">⚙️ 管理</span>
             <h1>🎮 社労士ゲーム</h1>
             <p class="subtitle">プレゼンテーション練習</p>
         </header>
 
-        <!-- メインコンテンツ -->
         <main class="main-content">
             <!-- ステップ1: プレイヤー選択 -->
             <section id="step1" class="step active">
@@ -585,18 +536,49 @@
                     </div>
                     <div class="button-group">
                         <button id="backToPlayer" class="btn btn-secondary">戻る</button>
+                        <button id="nextToConsultation" class="btn btn-primary" disabled>次へ</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ステップ3: 相談内容選択 -->
+            <section id="step3" class="step">
+                <div class="card">
+                    <h2>💬 相談内容選択</h2>
+                    <div class="form-group">
+                        <label for="consultationSelect">相談内容を選択してください</label>
+                        <select id="consultationSelect" class="consultation-select" size="10">
+                            <option value="">選択してください...</option>
+                        </select>
+                    </div>
+                    <div class="button-group">
+                        <button id="backToIndustry" class="btn btn-secondary">戻る</button>
+                        <button id="nextToCard" class="btn btn-primary" disabled>次へ</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ステップ4: カード選択 -->
+            <section id="step4" class="step">
+                <div class="card">
+                    <h2>🃏 カード選択</h2>
+                    <p class="info-text">提案するサービスを選択してください</p>
+                    <div class="card-choice-group" id="cardChoiceGroup">
+                        <!-- JavaScriptで動的に生成 -->
+                    </div>
+                    <div class="button-group">
+                        <button id="backToConsultation" class="btn btn-secondary">戻る</button>
                         <button id="nextToRecording" class="btn btn-primary" disabled>次へ</button>
                     </div>
                 </div>
             </section>
 
-            <!-- ステップ3: 音声録音 -->
-            <section id="step3" class="step">
+            <!-- ステップ5: 音声録音 -->
+            <section id="step5" class="step">
                 <div class="card">
                     <h2>🎤 プレゼンテーション録音</h2>
                     <p class="info-text">マイクボタンを押して、約1.5分間のプレゼンテーションを行ってください</p>
 
-                    <!-- 録音状態の表示 -->
                     <div class="recording-status">
                         <div id="recordingIndicator" class="recording-indicator">
                             <span class="status-text">準備完了</span>
@@ -607,9 +589,8 @@
                         </div>
                     </div>
 
-                    <!-- マイクボタン -->
                     <div class="mic-button-container">
-                        <button id="micButton" class="mic-button" aria-label="録音開始/停止">
+                        <button id="micButton" class="mic-button">
                             <svg width="60" height="60" viewBox="0 0 24 24" fill="currentColor">
                                 <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
                                 <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
@@ -617,21 +598,20 @@
                         </button>
                     </div>
 
-                    <!-- 文字起こしテキスト表示 -->
                     <div id="transcriptContainer" class="transcript-container" style="display: none;">
                         <h3>📝 文字起こし</h3>
                         <div id="transcriptText" class="transcript-text"></div>
                     </div>
 
                     <div class="button-group">
-                        <button id="backToIndustry" class="btn btn-secondary">戻る</button>
+                        <button id="backToCard" class="btn btn-secondary">戻る</button>
                         <button id="submitData" class="btn btn-success" disabled>送信</button>
                     </div>
                 </div>
             </section>
 
-            <!-- ステップ4: 完了画面 -->
-            <section id="step4" class="step">
+            <!-- ステップ6: 完了画面 -->
+            <section id="step6" class="step">
                 <div class="card">
                     <div class="success-message">
                         <div class="success-icon">✓</div>
@@ -643,63 +623,45 @@
             </section>
         </main>
 
-        <!-- フッター -->
         <footer class="footer">
             <p>&copy; 2024 社労士ゲーム</p>
         </footer>
     </div>
 
-    <!-- ローディングオーバーレイ -->
     <div id="loadingOverlay" class="loading-overlay" style="display: none;">
         <div class="loading-spinner"></div>
         <p>読み込み中...</p>
     </div>
 
-    <!-- エラーメッセージ -->
     <div id="errorMessage" class="error-message" style="display: none;"></div>
 
     <script>
-        // グローバル変数
         let currentStep = 1;
         let selectedPlayer = null;
         let selectedIndustries = [];
+        let selectedConsultation = null;
+        let selectedCard = null;
         let transcriptText = '';
         let recognition = null;
         let recordingTimer = null;
         let recordingStartTime = null;
-        const MAX_RECORDING_TIME = 90; // 1.5分 = 90秒
+        const MAX_RECORDING_TIME = 90;
 
-        // ページ読み込み時の初期化
         document.addEventListener('DOMContentLoaded', () => {
-            console.log('アプリ初期化中...');
             initializeApp();
         });
 
-        /**
-         * アプリの初期化
-         */
         async function initializeApp() {
-            // 音声認識の初期化
             initializeSpeechRecognition();
-
-            // イベントリスナーの設定
             setupEventListeners();
-
-            // ユーザーリストの読み込み
             await loadUsers();
-
-            console.log('初期化完了');
+            await loadConsultations();
         }
 
-        /**
-         * Web Speech API の初期化
-         */
         function initializeSpeechRecognition() {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-
             if (!SpeechRecognition) {
-                showError('お使いのブラウザは音声認識に対応していません。Chrome、Edge、Safariをお使いください。');
-                console.error('Speech Recognition not supported');
+                showError('お使いのブラウザは音声認識に対応していません');
                 return;
             }
 
@@ -707,11 +669,6 @@
             recognition.lang = 'ja-JP';
             recognition.continuous = true;
             recognition.interimResults = true;
-            recognition.maxAlternatives = 1;
-
-            recognition.onstart = () => {
-                console.log('音声認識開始');
-            };
 
             recognition.onresult = (event) => {
                 let interimTranscript = '';
@@ -731,114 +688,150 @@
             };
 
             recognition.onerror = (event) => {
-                console.error('音声認識エラー:', event.error);
-                if (event.error === 'no-speech') {
-                    if (isRecording()) {
-                        recognition.start();
-                    }
-                } else if (event.error !== 'aborted') {
-                    showError('音声認識エラー: ' + event.error);
+                if (event.error === 'no-speech' && isRecording()) {
+                    recognition.start();
                 }
             };
 
             recognition.onend = () => {
-                console.log('音声認識終了');
                 if (isRecording() && getRecordingTime() < MAX_RECORDING_TIME) {
                     recognition.start();
                 }
             };
         }
 
-        /**
-         * イベントリスナーの設定
-         */
         function setupEventListeners() {
+            // 管理画面リンク
+            document.getElementById('adminLink').addEventListener('click', () => {
+                const currentUrl = window.location.href.split('?')[0];
+                window.location.href = currentUrl + '?page=admin';
+            });
+
+            // ステップ1
             document.getElementById('playerSelect').addEventListener('change', (e) => {
                 selectedPlayer = e.target.value;
                 document.getElementById('nextToIndustry').disabled = !selectedPlayer;
             });
+            document.getElementById('nextToIndustry').addEventListener('click', () => goToStep(2));
 
-            document.getElementById('nextToIndustry').addEventListener('click', () => {
-                goToStep(2);
+            // ステップ2
+            document.querySelectorAll('input[name="industry"]').forEach(cb => {
+                cb.addEventListener('change', updateIndustrySelection);
+            });
+            document.getElementById('backToPlayer').addEventListener('click', () => goToStep(1));
+            document.getElementById('nextToConsultation').addEventListener('click', () => goToStep(3));
+
+            // ステップ3
+            document.getElementById('consultationSelect').addEventListener('change', (e) => {
+                selectedConsultation = e.target.value;
+                document.getElementById('nextToCard').disabled = !selectedConsultation;
+            });
+            document.getElementById('backToIndustry').addEventListener('click', () => goToStep(2));
+            document.getElementById('nextToCard').addEventListener('click', async () => {
+                await loadRandomCards();
+                goToStep(4);
             });
 
-            document.querySelectorAll('input[name="industry"]').forEach(checkbox => {
-                checkbox.addEventListener('change', updateIndustrySelection);
-            });
+            // ステップ4
+            document.getElementById('backToConsultation').addEventListener('click', () => goToStep(3));
+            document.getElementById('nextToRecording').addEventListener('click', () => goToStep(5));
 
-            document.getElementById('backToPlayer').addEventListener('click', () => {
-                goToStep(1);
-            });
-
-            document.getElementById('nextToRecording').addEventListener('click', () => {
-                goToStep(3);
-            });
-
+            // ステップ5
             document.getElementById('micButton').addEventListener('click', toggleRecording);
-
-            document.getElementById('backToIndustry').addEventListener('click', () => {
-                if (!isRecording()) {
-                    goToStep(2);
-                } else {
-                    showError('録音を停止してから戻ってください');
-                }
+            document.getElementById('backToCard').addEventListener('click', () => {
+                if (!isRecording()) goToStep(4);
+                else showError('録音を停止してから戻ってください');
             });
-
             document.getElementById('submitData').addEventListener('click', submitPlayData);
 
+            // ステップ6
             document.getElementById('restart').addEventListener('click', resetApp);
         }
 
-        /**
-         * ユーザーリストの読み込み
-         */
         async function loadUsers() {
             try {
                 showLoading(true);
-
-                // GASの関数を呼び出し
                 google.script.run
                     .withSuccessHandler((users) => {
                         const select = document.getElementById('playerSelect');
                         select.innerHTML = '<option value="">選択してください...</option>';
-
                         users.forEach(user => {
                             const option = document.createElement('option');
                             option.value = user.name;
                             option.textContent = user.name;
                             select.appendChild(option);
                         });
-
                         showLoading(false);
                     })
                     .withFailureHandler((error) => {
                         showLoading(false);
-                        console.error('ユーザー読み込みエラー:', error);
                         showError('ユーザーリストの読み込みに失敗しました');
                     })
                     .getAllUsers();
-
             } catch (error) {
                 showLoading(false);
-                console.error('ユーザー読み込みエラー:', error);
                 showError('ユーザーリストの読み込みに失敗しました');
             }
         }
 
-        /**
-         * 業界選択の更新
-         */
+        async function loadConsultations() {
+            try {
+                google.script.run
+                    .withSuccessHandler((consultations) => {
+                        const select = document.getElementById('consultationSelect');
+                        select.innerHTML = '<option value="">選択してください...</option>';
+                        consultations.forEach(c => {
+                            const option = document.createElement('option');
+                            option.value = c.text;
+                            option.textContent = `${c.id}: ${c.text}`;
+                            select.appendChild(option);
+                        });
+                    })
+                    .withFailureHandler((error) => {
+                        showError('相談内容の読み込みに失敗しました');
+                    })
+                    .getAllConsultations();
+            } catch (error) {
+                showError('相談内容の読み込みに失敗しました');
+            }
+        }
+
+        async function loadRandomCards() {
+            try {
+                google.script.run
+                    .withSuccessHandler((cards) => {
+                        const container = document.getElementById('cardChoiceGroup');
+                        container.innerHTML = cards.map(card => `
+                            <label class="card-choice-label">
+                                <input type="radio" name="card" value="${card}">
+                                <span class="card-choice-custom"></span>
+                                <span class="card-choice-content">${card}</span>
+                            </label>
+                        `).join('');
+
+                        container.querySelectorAll('input[name="card"]').forEach(radio => {
+                            radio.addEventListener('change', (e) => {
+                                selectedCard = e.target.value;
+                                document.getElementById('nextToRecording').disabled = false;
+                            });
+                        });
+                    })
+                    .withFailureHandler((error) => {
+                        showError('カードの読み込みに失敗しました');
+                    })
+                    .getRandomCardNames();
+            } catch (error) {
+                showError('カードの読み込みに失敗しました');
+            }
+        }
+
         function updateIndustrySelection() {
             selectedIndustries = Array.from(
                 document.querySelectorAll('input[name="industry"]:checked')
             ).map(cb => cb.value);
-
-            document.getElementById('nextToRecording').disabled = selectedIndustries.length === 0;
+            document.getElementById('nextToConsultation').disabled = selectedIndustries.length === 0;
         }
 
-        /**
-         * ステップ遷移
-         */
         function goToStep(step) {
             document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
             document.getElementById(`step${step}`).classList.add('active');
@@ -846,28 +839,15 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        /**
-         * 録音の開始/停止
-         */
         function toggleRecording() {
             if (!recognition) {
                 showError('音声認識が利用できません');
                 return;
             }
-
-            if (isRecording()) {
-                stopRecording();
-            } else {
-                startRecording();
-            }
+            isRecording() ? stopRecording() : startRecording();
         }
 
-        /**
-         * 録音開始
-         */
         function startRecording() {
-            console.log('録音開始');
-
             document.getElementById('micButton').classList.add('recording');
             document.getElementById('recordingIndicator').classList.add('recording');
             document.querySelector('.status-text').textContent = '録音中';
@@ -876,17 +856,11 @@
 
             recordingStartTime = Date.now();
             recordingTimer = setInterval(updateTimer, 100);
-
             transcriptText = '';
             recognition.start();
         }
 
-        /**
-         * 録音停止
-         */
         function stopRecording() {
-            console.log('録音停止');
-
             document.getElementById('micButton').classList.remove('recording');
             document.getElementById('recordingIndicator').classList.remove('recording');
             document.querySelector('.status-text').textContent = '録音完了';
@@ -896,34 +870,21 @@
             recordingTimer = null;
             recordingStartTime = null;
 
-            if (recognition) {
-                recognition.stop();
-            }
-
+            if (recognition) recognition.stop();
             document.getElementById('submitData').disabled = transcriptText.trim() === '';
         }
 
-        /**
-         * 録音中かどうか
-         */
         function isRecording() {
             return recordingTimer !== null;
         }
 
-        /**
-         * 録音時間を取得（秒）
-         */
         function getRecordingTime() {
             if (!recordingStartTime) return 0;
             return Math.floor((Date.now() - recordingStartTime) / 1000);
         }
 
-        /**
-         * タイマー更新
-         */
         function updateTimer() {
             const elapsed = getRecordingTime();
-
             const minutes = Math.floor(elapsed / 60);
             const seconds = elapsed % 60;
             document.getElementById('timer').textContent =
@@ -938,20 +899,14 @@
             }
         }
 
-        /**
-         * 文字起こしテキストの更新
-         */
         function updateTranscriptDisplay(text) {
             document.getElementById('transcriptText').textContent = text;
             const container = document.getElementById('transcriptText');
             container.scrollTop = container.scrollHeight;
         }
 
-        /**
-         * データの送信
-         */
         async function submitPlayData() {
-            if (!selectedPlayer || selectedIndustries.length === 0 || !transcriptText.trim()) {
+            if (!selectedPlayer || !selectedIndustries.length || !selectedConsultation || !selectedCard || !transcriptText.trim()) {
                 showError('必要な情報が不足しています');
                 return;
             }
@@ -959,81 +914,62 @@
             const playData = {
                 playerName: selectedPlayer,
                 industry: selectedIndustries,
-                response: transcriptText.trim(),
-                consultationText: '',
-                cardName: '',
-                score: '',
-                comment: '',
-                advice: '',
-                demo: ''
+                consultationText: selectedConsultation,
+                cardName: selectedCard,
+                response: transcriptText.trim()
             };
 
             try {
                 showLoading(true);
-
-                // GASの関数を呼び出し
                 google.script.run
-                    .withSuccessHandler((result) => {
-                        console.log('送信成功:', result);
+                    .withSuccessHandler(() => {
                         showLoading(false);
-                        goToStep(4);
+                        goToStep(6);
                     })
                     .withFailureHandler((error) => {
                         showLoading(false);
-                        console.error('送信エラー:', error);
                         showError('データの送信に失敗しました');
                     })
                     .savePlayData(playData);
-
             } catch (error) {
                 showLoading(false);
-                console.error('送信エラー:', error);
                 showError('データの送信に失敗しました');
             }
         }
 
-        /**
-         * アプリのリセット
-         */
         function resetApp() {
             currentStep = 1;
             selectedPlayer = null;
             selectedIndustries = [];
+            selectedConsultation = null;
+            selectedCard = null;
             transcriptText = '';
 
             document.getElementById('playerSelect').value = '';
-            document.querySelectorAll('input[name="industry"]').forEach(cb => {
-                cb.checked = false;
-            });
+            document.querySelectorAll('input[name="industry"]').forEach(cb => cb.checked = false);
+            document.getElementById('consultationSelect').value = '';
             document.getElementById('transcriptText').textContent = '';
             document.getElementById('timer').textContent = '00:00';
             document.getElementById('progressFill').style.width = '0%';
 
             document.getElementById('nextToIndustry').disabled = true;
+            document.getElementById('nextToConsultation').disabled = true;
+            document.getElementById('nextToCard').disabled = true;
             document.getElementById('nextToRecording').disabled = true;
             document.getElementById('submitData').disabled = true;
 
             goToStep(1);
         }
 
-        /**
-         * ローディング表示の切り替え
-         */
         function showLoading(show) {
             document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none';
         }
 
-        /**
-         * エラーメッセージの表示
-         */
         function showError(message) {
             const errorEl = document.getElementById('errorMessage');
             errorEl.textContent = message;
             errorEl.style.display = 'block';
-
-            setTimeout(() => {
-                errorEl.style.display = 'none';
-            }, 5000);
+            setTimeout(() => errorEl.style.display = 'none', 5000);
         }
     </script>
 </body>
