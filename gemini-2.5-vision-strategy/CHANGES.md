@@ -5,9 +5,11 @@
 ### 🚀 主要アップデート
 
 #### 1. Gemini 最新モデルへの移行
-- **モデル変更**: `gemini-2.0-flash-exp` → `gemini-exp-1206`（最新実験版）
+- **モデル変更**: `gemini-2.0-flash-exp`（**安定版・推奨**）
+- **デフォルト変更理由**: レート制限対策のため、実験版から安定版に変更
 - **代替モデルのサポート**:
-  - `gemini-2.0-flash-exp` - Gemini 2.0 Flash（安定版・推奨）
+  - `gemini-2.0-flash-exp` - Gemini 2.0 Flash（**安定版・推奨**）
+  - `gemini-exp-1206` - 最新の実験的モデル（レート制限厳しい）
   - `gemini-2.0-flash-thinking-exp-1219` - 思考プロセス表示版
   - `gemini-1.5-flash-latest` - Gemini 1.5 Flash
   - `gemini-1.5-pro-latest` - Gemini 1.5 Pro（高精度版）
@@ -17,7 +19,9 @@
   - `temperature`: 0.7（維持）
   - `maxOutputTokens`: 8192（維持）
 
-**注意**: `gemini-2.5-flash-preview-04-17` は現時点で利用できないため、利用可能な最新モデルを使用しています。
+**注意**:
+- `gemini-2.5-flash-preview-04-17` は現時点で利用できません
+- `gemini-exp-1206` はレート制限が厳しいため、安定版を推奨
 
 #### 2. 企業分析項目の大幅拡張
 
@@ -100,7 +104,34 @@
 
 ### 🔧 技術的な改善
 
-#### 1. データ取得ロジックの拡張
+#### 1. レート制限対策の強化
+**自動リトライ機能の実装**:
+```javascript
+function callGeminiApi(prompt, apiKey) {
+  const maxRetries = 3;
+  const baseDelay = 3000; // 3秒から開始
+
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return callGeminiApiSingle(prompt, apiKey);
+    } catch (error) {
+      if (error.message.includes('429') && attempt < maxRetries) {
+        const delay = baseDelay * Math.pow(2, attempt); // 指数バックオフ
+        Utilities.sleep(delay);
+        continue;
+      }
+      throw error;
+    }
+  }
+}
+```
+
+**レート制限対策の詳細**:
+- レート制限エラー（429）時に自動的に最大3回リトライ
+- 指数バックオフ: 3秒 → 6秒 → 12秒と待機時間を延長
+- 連続実行時の待機時間を1.5秒から3秒に延長
+
+#### 2. データ取得ロジックの拡張
 **新規関数 `buildVisionDataText()` の追加**:
 ```javascript
 function buildVisionDataText(industryText, strengthText, weaknessText,
@@ -109,7 +140,7 @@ function buildVisionDataText(industryText, strengthText, weaknessText,
 }
 ```
 
-#### 2. 列インデックスの動的検索
+#### 3. 列インデックスの動的検索
 従来の固定インデックスから、ヘッダー名による動的検索に変更:
 ```javascript
 const asColIdx = headers.indexOf('AsPhototext');  // 課題
@@ -117,10 +148,11 @@ const prColIdx = headers.indexOf('PrPhototext');  // 問題
 const vsColIdx = headers.indexOf('VsPhototext');  // ビジョン
 ```
 
-#### 3. エラーハンドリングの維持
+#### 4. エラーハンドリングの維持・強化
 - Gemini 2.0版のエラーハンドリングロジックを完全継承
 - APIエラー時の詳細メッセージ表示
 - パース失敗時のフォールバック処理
+- **レート制限エラーの詳細ログ出力**
 
 ### 📝 プロンプトエンジニアリングの高度化
 
@@ -245,21 +277,28 @@ gemini-2.5-vision-strategy/
 
 **推奨モデル（用途別）:**
 
-1. **安定性重視**: `gemini-2.0-flash-exp`
-   - 本番環境での利用に最適
+1. **本番環境・通常利用（推奨）**: `gemini-2.0-flash-exp` ⭐
+   - レート制限が緩やか
    - 安定した性能と予測可能な動作
+   - **デフォルト設定**
 
-2. **最新機能**: `gemini-exp-1206`
+2. **実験・最新機能**: `gemini-exp-1206`
    - 最新の機能を試したい場合
+   - ⚠️ レート制限が厳しい（注意）
    - 予告なく変更される可能性あり
 
-3. **高精度**: `gemini-1.5-pro-latest`
+3. **高精度・詳細分析**: `gemini-1.5-pro-latest`
    - より詳細で正確な分析が必要な場合
    - 処理時間は長くなる可能性あり
 
-4. **思考プロセス表示**: `gemini-2.0-flash-thinking-exp-1219`
+4. **デバッグ・検証**: `gemini-2.0-flash-thinking-exp-1219`
    - AIの思考過程を確認したい場合
    - デバッグや検証に有用
+
+**レート制限対策のポイント:**
+- `gemini-exp-1206` は厳しいレート制限があるため、本番環境では非推奨
+- `gemini-2.0-flash-exp` が最もバランスが良く推奨
+- 大量処理の場合は、待機時間を調整するか分散実行を検討
 
 ---
 

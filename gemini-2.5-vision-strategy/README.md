@@ -172,13 +172,13 @@
 
 ### モデル設定
 ```javascript
-const MODEL_NAME  = 'gemini-exp-1206';  // 最新の実験的モデル
+const MODEL_NAME  = 'gemini-2.0-flash-exp';  // Gemini 2.0 Flash（安定版・推奨）
 const API_VERSION = 'v1beta';
 ```
 
 **利用可能な代替モデル:**
-- `gemini-exp-1206` - 最新の実験的モデル（推奨）
-- `gemini-2.0-flash-exp` - Gemini 2.0 Flash（安定版）
+- `gemini-2.0-flash-exp` - Gemini 2.0 Flash（**安定版・推奨**）
+- `gemini-exp-1206` - 最新の実験的モデル（レート制限が厳しい）
 - `gemini-2.0-flash-thinking-exp-1219` - 思考プロセス表示版
 - `gemini-1.5-flash-latest` - Gemini 1.5 Flash
 - `gemini-1.5-pro-latest` - Gemini 1.5 Pro（高精度版）
@@ -190,6 +190,11 @@ topP: 0.85           // 推奨値
 topK: 40             // 語彙選択の幅
 maxOutputTokens: 8192 // 長文出力対応
 ```
+
+### レート制限対策
+- **自動リトライ機能**: レート制限エラー（429）時に自動的に3回までリトライ
+- **指数バックオフ**: 3秒 → 6秒 → 12秒と待機時間を延長
+- **連続実行時の待機**: 複数行処理時は3秒間隔で実行
 
 ## v3.4.0からのアップグレード内容
 
@@ -233,10 +238,18 @@ maxOutputTokens: 8192 // 長文出力対応
 ### APIエラーが発生する場合
 1. APIキーが正しく設定されているか確認
 2. Google AI Studioでクォータを確認
-3. モデル名が正しいか確認（gemini-exp-1206）
+3. モデル名が正しいか確認（gemini-2.0-flash-exp）
 4. モデルが利用できない場合は、代替モデルに切り替え
    - スクリプト内の `MODEL_NAME` を変更
-   - 例: `const MODEL_NAME = 'gemini-2.0-flash-exp';`
+   - 例: `const MODEL_NAME = 'gemini-1.5-flash-latest';`
+
+### レート制限エラー（429）が発生する場合
+1. **自動リトライ**: スクリプトは自動的に3回までリトライします
+2. **待機時間**: 3秒 → 6秒 → 12秒と指数的に待機時間が延長されます
+3. **それでもエラーが続く場合**:
+   - 一時的にAPI使用を停止し、数分待ってから再試行
+   - Google AI Studioでクォータ状況を確認
+   - 1日の使用量制限に達している可能性があります
 
 ### 企画書が生成されない場合
 1. 「事前ワーク」シートのGroup名が一致しているか確認

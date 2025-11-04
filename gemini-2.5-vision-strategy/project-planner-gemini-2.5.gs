@@ -26,11 +26,11 @@ const PRE_WORK_SHEET_NAME   = '事前ワーク';
 // -----------------------------
 // Gemini モデル設定
 // -----------------------------
-const MODEL_NAME  = 'gemini-exp-1206';  // ★最新の実験的モデル (2024年12月6日版)
-const API_VERSION = 'v1beta';           // ★維持: v1betaのまま
+const MODEL_NAME  = 'gemini-2.0-flash-exp';  // ★Gemini 2.0 Flash（安定版・推奨）
+const API_VERSION = 'v1beta';                 // ★維持: v1betaのまま
 
 // 代替オプション（利用可能なモデル）:
-// const MODEL_NAME  = 'gemini-2.0-flash-exp';                    // Gemini 2.0 Flash（安定版）
+// const MODEL_NAME  = 'gemini-exp-1206';                        // 最新の実験的モデル（レート制限厳しい）
 // const MODEL_NAME  = 'gemini-2.0-flash-thinking-exp-1219';     // 思考プロセス表示版
 // const MODEL_NAME  = 'gemini-1.5-flash-latest';                // Gemini 1.5 Flash（従来版）
 // const MODEL_NAME  = 'gemini-1.5-pro-latest';                  // Gemini 1.5 Pro（高精度版）
@@ -205,7 +205,7 @@ function generateForAllUnprocessedRows() {
   for (let i = 1; i < values.length; i++) {
     if (!values[i][TITLE_COL - 1] || values[i][TITLE_COL - 1].includes('エラー')) {
       processSingleRow(sheet, i + 1);
-      Utilities.sleep(1500);
+      Utilities.sleep(3000); // ★レート制限対策のため3秒に延長
     }
   }
   SpreadsheetApp.getUi().alert('未処理行の生成が完了しました。');
@@ -821,9 +821,33 @@ ${cardNameText}
 }
 
 // ============================================================
-// ★更新：Gemini API呼び出し
+// ★更新：Gemini API呼び出し（リトライ対応）
 // ============================================================
 function callGeminiApi(prompt, apiKey) {
+  const maxRetries = 3;
+  const baseDelay = 3000; // 3秒から開始
+
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return callGeminiApiSingle(prompt, apiKey);
+    } catch (error) {
+      // レート制限エラー（429）の場合のみリトライ
+      if (error.message.includes('429') && attempt < maxRetries) {
+        const delay = baseDelay * Math.pow(2, attempt); // 指数バックオフ: 3秒, 6秒, 12秒
+        Logger.log(`レート制限エラー。${delay/1000}秒待機後にリトライします (${attempt + 1}/${maxRetries})...`);
+        Utilities.sleep(delay);
+        continue;
+      }
+      // その他のエラーまたは最大リトライ回数に達した場合
+      throw error;
+    }
+  }
+}
+
+// ============================================================
+// 単一API呼び出し（内部関数）
+// ============================================================
+function callGeminiApiSingle(prompt, apiKey) {
   const url = `https://generativelanguage.googleapis.com/${API_VERSION}/models/${MODEL_NAME}:generateContent?key=${apiKey}`;
 
   // ★最適化されたパラメータ
