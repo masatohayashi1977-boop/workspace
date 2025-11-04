@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>社労士ゲーム</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- ヘッダー -->
+        <header class="header">
+            <h1>🎮 社労士ゲーム</h1>
+            <p class="subtitle">プレゼンテーション練習</p>
+        </header>
+
+        <!-- メインコンテンツ -->
+        <main class="main-content">
+            <!-- ステップ1: プレイヤー選択 -->
+            <section id="step1" class="step active">
+                <div class="card">
+                    <h2>👤 プレイヤー選択</h2>
+                    <div class="form-group">
+                        <label for="playerSelect">プレイヤー名を選択してください</label>
+                        <select id="playerSelect" class="input-field">
+                            <option value="">選択してください...</option>
+                        </select>
+                    </div>
+                    <button id="nextToIndustry" class="btn btn-primary" disabled>次へ</button>
+                </div>
+            </section>
+
+            <!-- ステップ2: 業界選択 -->
+            <section id="step2" class="step">
+                <div class="card">
+                    <h2>🏭 業界選択</h2>
+                    <p class="info-text">対象業界を選択してください（複数選択可）</p>
+                    <div class="checkbox-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="industry" value="製造業界">
+                            <span class="checkbox-custom"></span>
+                            製造業界
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="industry" value="運送業界">
+                            <span class="checkbox-custom"></span>
+                            運送業界
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="industry" value="建設業界">
+                            <span class="checkbox-custom"></span>
+                            建設業界
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="industry" value="介護業界">
+                            <span class="checkbox-custom"></span>
+                            介護業界
+                        </label>
+                    </div>
+                    <div class="button-group">
+                        <button id="backToPlayer" class="btn btn-secondary">戻る</button>
+                        <button id="nextToRecording" class="btn btn-primary" disabled>次へ</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ステップ3: 音声録音 -->
+            <section id="step3" class="step">
+                <div class="card">
+                    <h2>🎤 プレゼンテーション録音</h2>
+                    <p class="info-text">マイクボタンを押して、約1.5分間のプレゼンテーションを行ってください</p>
+
+                    <!-- 録音状態の表示 -->
+                    <div class="recording-status">
+                        <div id="recordingIndicator" class="recording-indicator">
+                            <span class="status-text">準備完了</span>
+                        </div>
+                        <div id="timer" class="timer">00:00</div>
+                        <div class="progress-bar">
+                            <div id="progressFill" class="progress-fill"></div>
+                        </div>
+                    </div>
+
+                    <!-- マイクボタン -->
+                    <div class="mic-button-container">
+                        <button id="micButton" class="mic-button" aria-label="録音開始/停止">
+                            <svg width="60" height="60" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+                                <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <!-- 文字起こしテキスト表示 -->
+                    <div id="transcriptContainer" class="transcript-container" style="display: none;">
+                        <h3>📝 文字起こし</h3>
+                        <div id="transcriptText" class="transcript-text"></div>
+                    </div>
+
+                    <div class="button-group">
+                        <button id="backToIndustry" class="btn btn-secondary">戻る</button>
+                        <button id="submitData" class="btn btn-success" disabled>送信</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ステップ4: 完了画面 -->
+            <section id="step4" class="step">
+                <div class="card">
+                    <div class="success-message">
+                        <div class="success-icon">✓</div>
+                        <h2>送信完了！</h2>
+                        <p>プレゼンテーションデータが保存されました。</p>
+                    </div>
+                    <button id="restart" class="btn btn-primary">最初から始める</button>
+                </div>
+            </section>
+        </main>
+
+        <!-- フッター -->
+        <footer class="footer">
+            <p>&copy; 2024 社労士ゲーム</p>
+        </footer>
+    </div>
+
+    <!-- ローディングオーバーレイ -->
+    <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+        <div class="loading-spinner"></div>
+        <p>読み込み中...</p>
+    </div>
+
+    <!-- エラーメッセージ -->
+    <div id="errorMessage" class="error-message" style="display: none;"></div>
+
+    <script src="app.js"></script>
+</body>
+</html>
