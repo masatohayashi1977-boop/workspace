@@ -49,10 +49,19 @@ function sendDailyFeedback() {
     const individualFeedbacks = [];
     for (const userId in userGroups) {
       const userData = userGroups[userId];
+      Logger.log('処理中のユーザーID: "' + userId + '" (型: ' + typeof userId + ')');
+      Logger.log('ユーザーマスター件数: ' + users.length);
+
+      // デバッグ: 全ユーザーのIDを表示
+      for (let i = 0; i < users.length; i++) {
+        Logger.log('  ユーザー[' + i + '].id="' + users[i].id + '" (型: ' + typeof users[i].id + ')');
+      }
+
       const user = users.find(u => u.id === userId);
 
       if (!user || !user.email) {
         Logger.log('ユーザー ' + userId + ' のメールアドレスが見つかりません');
+        Logger.log('照合失敗の理由: user=' + (user ? 'あり' : 'なし') + ', email=' + (user && user.email ? user.email : 'なし'));
         continue;
       }
 
@@ -229,6 +238,8 @@ function getUserMaster() {
   const nameIndex = headers.indexOf('氏名');
   const emailIndex = headers.indexOf('メールアドレス');
 
+  Logger.log('ユーザー管理シートのカラムインデックス: ID=' + idIndex + ', 氏名=' + nameIndex + ', メールアドレス=' + emailIndex);
+
   if (nameIndex === -1 || emailIndex === -1) {
     Logger.log('エラー: ユーザー管理シートに必須カラムがありません');
     return [];
@@ -241,11 +252,14 @@ function getUserMaster() {
       continue;
     }
 
-    result.push({
+    const user = {
       id: data[i][idIndex],
       name: data[i][nameIndex],
       email: data[i][emailIndex]
-    });
+    };
+
+    Logger.log('ユーザー[' + i + ']: ID="' + user.id + '", 氏名="' + user.name + '", メール="' + user.email + '"');
+    result.push(user);
   }
 
   Logger.log('ユーザーマスター取得: ' + result.length + '件');
@@ -839,6 +853,12 @@ function testDataRetrieval() {
   const data = getYesterdayData(yesterday);
   Logger.log('データ件数: ' + data.length);
 
+  if (data.length > 0) {
+    Logger.log('サンプルデータ[0]:');
+    Logger.log('  userId: "' + data[0].userId + '"');
+    Logger.log('  content: "' + data[0].content + '"');
+  }
+
   const users = getUserMaster();
   Logger.log('ユーザー数: ' + users.length);
 
@@ -847,6 +867,32 @@ function testDataRetrieval() {
 
   const customers = getCustomerMaster();
   Logger.log('顧客数: ' + Object.keys(customers).length);
+
+  Logger.log('=== テスト完了 ===');
+}
+
+// ユーザーマスター詳細確認用
+function testUserMaster() {
+  Logger.log('=== ユーザーマスター詳細テスト ===');
+
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.SHEET_NAME.users);
+
+  if (!sheet) {
+    Logger.log('エラー: ユーザー管理シートが見つかりません');
+    return;
+  }
+
+  const data = sheet.getDataRange().getValues();
+
+  Logger.log('行数: ' + data.length);
+  Logger.log('ヘッダー行: ' + JSON.stringify(data[0]));
+
+  if (data.length > 1) {
+    Logger.log('データ行[1]: ' + JSON.stringify(data[1]));
+  }
+
+  const users = getUserMaster();
+  Logger.log('取得結果: ' + JSON.stringify(users));
 
   Logger.log('=== テスト完了 ===');
 }
