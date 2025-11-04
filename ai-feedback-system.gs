@@ -559,8 +559,8 @@ function generateManagementInsight(individualFeedbacks, userGroups, totalHours, 
 
 // Gemini APIを呼び出し
 function callGeminiAPI(prompt) {
-  // 修正: モデル名を gemini-1.5-flash に変更
-  const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' + CONFIG.GEMINI_API_KEY;
+  // Gemini 2.5 Flash を使用
+  const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' + CONFIG.GEMINI_API_KEY;
 
   const payload = {
     contents: [{
@@ -568,9 +568,17 @@ function callGeminiAPI(prompt) {
         text: prompt
       }]
     }],
+    systemInstruction: {
+      parts: [{
+        text: '簡潔で具体的なフィードバックを提供してください。内部の思考プロセスは最小限にし、ユーザーに見せる回答に集中してください。'
+      }]
+    },
     generationConfig: {
       temperature: 0.7,
-      maxOutputTokens: 1000
+      maxOutputTokens: 2048,  // トークン数を増やす
+      topP: 0.9,
+      topK: 40,
+      responseMimeType: 'text/plain'
     }
   };
 
@@ -597,10 +605,21 @@ function callGeminiAPI(prompt) {
     const result = JSON.parse(responseText);
 
     if (result.candidates && result.candidates.length > 0) {
-      const content = result.candidates[0].content;
+      const candidate = result.candidates[0];
+      const content = candidate.content;
+
+      // finishReasonをチェック
+      if (candidate.finishReason === 'MAX_TOKENS') {
+        Logger.log('警告: トークン数上限に達しました。出力が途中で切れている可能性があります。');
+      }
+
       if (content && content.parts && content.parts.length > 0) {
         return content.parts[0].text;
       }
+
+      // content.partsが存在しない場合のエラーメッセージ
+      Logger.log('エラー: content.partsが存在しません。finishReason: ' + candidate.finishReason);
+      return 'フィードバック生成に失敗しました。(理由: 出力が生成されませんでした)';
     }
 
     Logger.log('Gemini API 予期しないレスポンス: ' + responseText);
