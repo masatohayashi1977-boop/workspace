@@ -503,7 +503,9 @@ function buildPrompt(userData, types, customers, totalDuration, taskCount, mostT
   prompt += '・稼働時間やタスク数の達成状況を評価\n';
   prompt += '・最も時間がかかったタスクについて言及\n';
   prompt += '・目標に対しての所感を踏まえた励まし\n';
-  prompt += '・日本語で、150〜300字程度で\n';
+  prompt += '・日本語で、150〜300字程度で\n\n';
+
+  prompt += '【重要】思考プロセスや分析過程は含めず、フィードバック文のみを直接出力してください。';
 
   return prompt;
 }
@@ -545,7 +547,9 @@ function buildManagementPrompt(individualFeedbacks, userGroups, totalHours, tota
   prompt += '・チームの強みや改善点を具体的に提案\n';
   prompt += '・今後のチーム運営に向けたアドバイス\n';
   prompt += '・マネージャーとして注目すべきポイントを明確に\n';
-  prompt += '・日本語で、300〜500字程度で、客観的かつ建設的な内容で\n';
+  prompt += '・日本語で、300〜500字程度で、客観的かつ建設的な内容で\n\n';
+
+  prompt += '【重要】思考プロセスや分析過程は含めず、マネジメント分析の文章のみを直接出力してください。';
 
   return prompt;
 }
@@ -559,8 +563,8 @@ function generateManagementInsight(individualFeedbacks, userGroups, totalHours, 
 
 // Gemini APIを呼び出し
 function callGeminiAPI(prompt) {
-  // Gemini 2.5 Flash を使用
-  const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' + CONFIG.GEMINI_API_KEY;
+  // Gemini 2.5 Flash Latest を使用（Thinking機能なし）
+  const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-latest:generateContent?key=' + CONFIG.GEMINI_API_KEY;
 
   const payload = {
     contents: [{
@@ -570,13 +574,13 @@ function callGeminiAPI(prompt) {
     }],
     systemInstruction: {
       parts: [{
-        text: '簡潔で具体的なフィードバックを提供してください。内部の思考プロセスは最小限にし、ユーザーに見せる回答に集中してください。'
+        text: 'あなたは業務フィードバックを提供するアシスタントです。思考プロセスや分析の過程は一切出力せず、完成したフィードバック文のみを直接出力してください。内部の推論や考察は含めないでください。'
       }]
     },
     generationConfig: {
       temperature: 0.7,
-      maxOutputTokens: 2048,  // トークン数を増やす
-      topP: 0.9,
+      maxOutputTokens: 4096,  // トークン数をさらに増やす
+      topP: 0.95,
       topK: 40,
       responseMimeType: 'text/plain'
     }
@@ -611,14 +615,21 @@ function callGeminiAPI(prompt) {
       // finishReasonをチェック
       if (candidate.finishReason === 'MAX_TOKENS') {
         Logger.log('警告: トークン数上限に達しました。出力が途中で切れている可能性があります。');
+        Logger.log('thoughtsTokenCount: ' + (result.usageMetadata ? result.usageMetadata.thoughtsTokenCount : 'なし'));
       }
 
       if (content && content.parts && content.parts.length > 0) {
-        return content.parts[0].text;
+        const responseText = content.parts[0].text;
+        Logger.log('生成成功。出力文字数: ' + responseText.length);
+        if (result.usageMetadata && result.usageMetadata.thoughtsTokenCount) {
+          Logger.log('注意: Thinking機能が使用されました (' + result.usageMetadata.thoughtsTokenCount + 'トークン)');
+        }
+        return responseText;
       }
 
       // content.partsが存在しない場合のエラーメッセージ
       Logger.log('エラー: content.partsが存在しません。finishReason: ' + candidate.finishReason);
+      Logger.log('レスポンス全体: ' + JSON.stringify(result));
       return 'フィードバック生成に失敗しました。(理由: 出力が生成されませんでした)';
     }
 
