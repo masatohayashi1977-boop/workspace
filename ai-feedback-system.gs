@@ -49,19 +49,10 @@ function sendDailyFeedback() {
     const individualFeedbacks = [];
     for (const userId in userGroups) {
       const userData = userGroups[userId];
-      Logger.log('処理中のユーザーID: "' + userId + '" (型: ' + typeof userId + ')');
-      Logger.log('ユーザーマスター件数: ' + users.length);
-
-      // デバッグ: 全ユーザーのIDを表示
-      for (let i = 0; i < users.length; i++) {
-        Logger.log('  ユーザー[' + i + '].id="' + users[i].id + '" (型: ' + typeof users[i].id + ')');
-      }
-
       const user = users.find(u => u.id === userId);
 
       if (!user || !user.email) {
         Logger.log('ユーザー ' + userId + ' のメールアドレスが見つかりません');
-        Logger.log('照合失敗の理由: user=' + (user ? 'あり' : 'なし') + ', email=' + (user && user.email ? user.email : 'なし'));
         continue;
       }
 
@@ -70,7 +61,7 @@ function sendDailyFeedback() {
 
       // メール送信
       const subject = yesterday + ' の業務フィードバック';
-      const htmlBody = formatFeedbackEmail(user.name, feedback, yesterday);
+      const htmlBody = formatFeedbackEmail(user.name, feedback, yesterday, userData, types, customers);
 
       GmailApp.sendEmail(user.email, subject, '', { htmlBody: htmlBody });
       Logger.log(user.name + ' (' + user.email + ') にメール送信完了');
@@ -238,8 +229,6 @@ function getUserMaster() {
   const nameIndex = headers.indexOf('氏名');
   const emailIndex = headers.indexOf('メールアドレス');
 
-  Logger.log('ユーザー管理シートのカラムインデックス: ID=' + idIndex + ', 氏名=' + nameIndex + ', メールアドレス=' + emailIndex);
-
   if (nameIndex === -1 || emailIndex === -1) {
     Logger.log('エラー: ユーザー管理シートに必須カラムがありません');
     return [];
@@ -252,14 +241,11 @@ function getUserMaster() {
       continue;
     }
 
-    const user = {
+    result.push({
       id: data[i][idIndex],
       name: data[i][nameIndex],
       email: data[i][emailIndex]
-    };
-
-    Logger.log('ユーザー[' + i + ']: ID="' + user.id + '", 氏名="' + user.name + '", メール="' + user.email + '"');
-    result.push(user);
+    });
   }
 
   Logger.log('ユーザーマスター取得: ' + result.length + '件');
@@ -522,6 +508,55 @@ function buildPrompt(userData, types, customers, totalDuration, taskCount, mostT
   return prompt;
 }
 
+// 管理者向けマネジメント分析プロンプトを構築
+function buildManagementPrompt(individualFeedbacks, userGroups, totalHours, totalTaskCount, userCount, types, customers) {
+  let prompt = 'あなたはチームマネージャーです。以下のチームの業務データを分析し、マネジメント視点でのフィードバックを提供してください。\n\n';
+
+  prompt += '【チーム全体サマリー】\n';
+  prompt += '対象メンバー: ' + userCount + '名\n';
+  prompt += '総稼働時間: ' + totalHours.toFixed(2) + '時間\n';
+  prompt += '総タスク数: ' + totalTaskCount + '件\n';
+  prompt += '平均稼働時間: ' + (userCount > 0 ? (totalHours / userCount).toFixed(2) : '0.00') + '時間/人\n';
+  prompt += '平均タスク数: ' + (userCount > 0 ? (totalTaskCount / userCount).toFixed(1) : '0.0') + '件/人\n\n';
+
+  prompt += '【メンバー別データ】\n';
+  for (let i = 0; i < individualFeedbacks.length; i++) {
+    const member = individualFeedbacks[i];
+    const feedback = member.feedback;
+
+    prompt += (i + 1) + '. ' + member.userName + '\n';
+    prompt += '   稼働時間: ' + (feedback.totalDuration ? feedback.totalDuration.toFixed(2) : '0.00') + '時間\n';
+    prompt += '   タスク数: ' + (feedback.taskCount || 0) + '件\n';
+
+    if (feedback.mostTimeTask) {
+      let duration = feedback.mostTimeTask.duration;
+      if (typeof duration === 'number') {
+        duration = duration.toFixed(2) + '時間';
+      }
+      prompt += '   最長タスク: ' + feedback.mostTimeTask.content + ' (' + duration + ')\n';
+    }
+
+    prompt += '\n';
+  }
+
+  prompt += '【分析指針】\n';
+  prompt += '・チーム全体の生産性や業務バランスについて評価\n';
+  prompt += '・メンバー間の稼働時間やタスク量の偏りがあれば指摘\n';
+  prompt += '・チームの強みや改善点を具体的に提案\n';
+  prompt += '・今後のチーム運営に向けたアドバイス\n';
+  prompt += '・マネージャーとして注目すべきポイントを明確に\n';
+  prompt += '・日本語で、300〜500字程度で、客観的かつ建設的な内容で\n';
+
+  return prompt;
+}
+
+// 管理者向けマネジメント分析を生成
+function generateManagementInsight(individualFeedbacks, userGroups, totalHours, totalTaskCount, userCount, types, customers) {
+  const prompt = buildManagementPrompt(individualFeedbacks, userGroups, totalHours, totalTaskCount, userCount, types, customers);
+  const insight = callGeminiAPI(prompt);
+  return insight;
+}
+
 // Gemini APIを呼び出し
 function callGeminiAPI(prompt) {
   // 修正: モデル名を gemini-1.5-flash に変更
@@ -583,18 +618,21 @@ function callGeminiAPI(prompt) {
 // ==========================================
 
 // 個人用フィードバックメールのHTMLを作成
-function formatFeedbackEmail(userName, feedback, dateString) {
-  let html = '<html><head><meta charset="utf-8"></head><body style="font-family: sans-serif; line-height: 1.6;">';
+function formatFeedbackEmail(userName, feedback, dateString, userData, types, customers) {
+  let html = '<html><head><meta charset="utf-8"></head><body style="font-family: sans-serif; line-height: 1.6; max-width: 800px; margin: 0 auto; padding: 20px;">';
 
-  html += '<h2>' + userName + 'さんへの業務フィードバック</h2>';
-  html += '<p><strong>対象日:</strong> ' + dateString + '</p>';
+  // ヘッダー
+  html += '<div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 10px; margin-bottom: 30px;">';
+  html += '<h1 style="margin: 0; font-size: 24px;">お疲れさまでした、' + userName + 'さん!</h1>';
+  html += '<p style="margin: 10px 0 0 0; opacity: 0.9;">' + dateString + ' の業務フィードバック</p>';
+  html += '</div>';
 
-  html += '<hr>';
-
-  html += '<h3>業務サマリー</h3>';
-  html += '<table style="border-collapse: collapse;">';
-  html += '<tr><td style="padding: 8px;"><strong>稼働時間:</strong></td><td style="padding: 8px;">' + (feedback.totalDuration ? feedback.totalDuration.toFixed(2) : '0.00') + '時間</td></tr>';
-  html += '<tr><td style="padding: 8px;"><strong>タスク数:</strong></td><td style="padding: 8px;">' + (feedback.taskCount || 0) + '件</td></tr>';
+  // 業務サマリー
+  html += '<div style="background-color: #f8f9fa; border-left: 4px solid #667eea; padding: 20px; margin-bottom: 30px; border-radius: 5px;">';
+  html += '<h2 style="margin-top: 0; color: #333;">📊 業務サマリー</h2>';
+  html += '<table style="width: 100%; border-collapse: collapse;">';
+  html += '<tr><td style="padding: 12px 8px; border-bottom: 1px solid #dee2e6;"><strong>稼働時間:</strong></td><td style="padding: 12px 8px; border-bottom: 1px solid #dee2e6; text-align: right; font-size: 18px; color: #667eea;">' + (feedback.totalDuration ? feedback.totalDuration.toFixed(2) : '0.00') + ' 時間</td></tr>';
+  html += '<tr><td style="padding: 12px 8px; border-bottom: 1px solid #dee2e6;"><strong>完了タスク数:</strong></td><td style="padding: 12px 8px; border-bottom: 1px solid #dee2e6; text-align: right; font-size: 18px; color: #667eea;">' + (feedback.taskCount || 0) + ' 件</td></tr>';
 
   if (feedback.mostTimeTask) {
     let taskDuration = feedback.mostTimeTask.duration;
@@ -605,20 +643,70 @@ function formatFeedbackEmail(userName, feedback, dateString) {
       const minutes = taskDuration.getMinutes();
       taskDuration = hours + ':' + String(minutes).padStart(2, '0');
     }
-    html += '<tr><td style="padding: 8px;"><strong>最長タスク:</strong></td><td style="padding: 8px;">' + (feedback.mostTimeTask.content || '（内容なし）') + ' (' + taskDuration + ')</td></tr>';
+    html += '<tr><td style="padding: 12px 8px;"><strong>最も時間をかけたタスク:</strong></td><td style="padding: 12px 8px; text-align: right; color: #495057;">' + (feedback.mostTimeTask.content || '（内容なし）') + '<br><span style="font-size: 14px; color: #6c757d;">(' + taskDuration + ')</span></td></tr>';
   }
 
   html += '</table>';
-
-  html += '<hr>';
-
-  html += '<h3>AI評価</h3>';
-  html += '<div style="background-color: #f5f5f5; padding: 12px; border-radius: 4px;">';
-  html += (feedback.aiComment || 'フィードバック取得中...').replace(/\n/g, '<br>');
   html += '</div>';
 
-  html += '<hr>';
-  html += '<p style="font-size: 12px; color: #666;">このメールは自動で送信されています。</p>';
+  // タスク一覧
+  if (userData && Array.isArray(userData) && userData.length > 0) {
+    html += '<div style="margin-bottom: 30px;">';
+    html += '<h2 style="color: #333;">📝 本日のタスク一覧</h2>';
+
+    for (let i = 0; i < userData.length; i++) {
+      const task = userData[i];
+      const typeName = types[task.type] || task.type || '未分類';
+      const customerName = customers[task.customer] || task.customer || '未指定';
+
+      let taskDuration = task.duration;
+      if (typeof taskDuration === 'number') {
+        taskDuration = taskDuration.toFixed(2) + '時間';
+      } else if (taskDuration instanceof Date) {
+        const hours = taskDuration.getHours();
+        const minutes = taskDuration.getMinutes();
+        taskDuration = hours + ':' + String(minutes).padStart(2, '0');
+      }
+
+      html += '<div style="background-color: #ffffff; border: 1px solid #dee2e6; padding: 15px; margin-bottom: 15px; border-radius: 5px;">';
+      html += '<div style="display: flex; justify-content: space-between; margin-bottom: 8px;">';
+      html += '<strong style="color: #495057;">' + (i + 1) + '. ' + (task.content || '（内容なし）') + '</strong>';
+      html += '<span style="color: #667eea; font-weight: bold;">' + taskDuration + '</span>';
+      html += '</div>';
+      html += '<div style="font-size: 14px; color: #6c757d; margin-bottom: 5px;">';
+      html += '顧客: ' + customerName + ' | 種別: ' + typeName;
+      html += '</div>';
+
+      if (task.target) {
+        html += '<div style="font-size: 14px; color: #495057; margin-top: 8px; padding-top: 8px; border-top: 1px dashed #dee2e6;">';
+        html += '<strong>目標:</strong> ' + task.target;
+        html += '</div>';
+      }
+
+      if (task.impression) {
+        html += '<div style="font-size: 14px; color: #495057; margin-top: 8px; padding-top: 8px; border-top: 1px dashed #dee2e6;">';
+        html += '<strong>所感:</strong> ' + task.impression;
+        html += '</div>';
+      }
+
+      html += '</div>';
+    }
+    html += '</div>';
+  }
+
+  // AI評価
+  html += '<div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; padding: 25px; border-radius: 10px; margin-bottom: 30px;">';
+  html += '<h2 style="margin-top: 0;">✨ AIからのフィードバック</h2>';
+  html += '<div style="background-color: rgba(255, 255, 255, 0.2); padding: 15px; border-radius: 5px; line-height: 1.8;">';
+  html += (feedback.aiComment || 'フィードバック取得中...').replace(/\n/g, '<br>');
+  html += '</div>';
+  html += '</div>';
+
+  // フッター
+  html += '<div style="text-align: center; padding-top: 20px; border-top: 2px solid #dee2e6;">';
+  html += '<p style="font-size: 12px; color: #6c757d; margin: 5px 0;">このメールは業務管理システムから自動送信されています</p>';
+  html += '<p style="font-size: 12px; color: #6c757d; margin: 5px 0;">明日も頑張りましょう!</p>';
+  html += '</div>';
 
   html += '</body></html>';
 
@@ -632,13 +720,11 @@ function formatFeedbackEmail(userName, feedback, dateString) {
 function sendAdminSummary(dateString, individualFeedbacks, userGroups, types, customers) {
   const adminEmail = CONFIG.ADMIN_EMAIL;
 
-  // 修正: 管理者メールアドレスが設定されているかのみチェック
   if (!adminEmail) {
     Logger.log('管理者メールアドレスが設定されていません');
     return;
   }
 
-  // nullチェック
   if (!userGroups) {
     Logger.log('警告: userGroupsが無効です');
     userGroups = {};
@@ -649,16 +735,8 @@ function sendAdminSummary(dateString, individualFeedbacks, userGroups, types, cu
     individualFeedbacks = [];
   }
 
-  // サマリーHTMLを作成
-  let html = '<html><head><meta charset="utf-8"></head><body style="font-family: sans-serif; line-height: 1.6;">';
-
-  html += '<h1>' + dateString + ' 業務フィードバックサマリー（管理者用）</h1>';
-
-  html += '<h2>📈 全体統計</h2>';
-  html += '<ul>';
-
+  // 統計データを計算
   const userCount = Object.keys(userGroups).length || 0;
-  html += '<li>対象ユーザー数: ' + userCount + '人</li>';
 
   let totalTaskCount = 0;
   for (const userId in userGroups) {
@@ -666,7 +744,6 @@ function sendAdminSummary(dateString, individualFeedbacks, userGroups, types, cu
       totalTaskCount += userGroups[userId].length;
     }
   }
-  html += '<li>総タスク数: ' + totalTaskCount + '件</li>';
 
   let totalHours = 0;
   for (const userId in userGroups) {
@@ -674,44 +751,105 @@ function sendAdminSummary(dateString, individualFeedbacks, userGroups, types, cu
       totalHours += calculateTotalDuration(userGroups[userId]);
     }
   }
-  html += '<li>総稼働時間: ' + totalHours.toFixed(2) + '時間</li>';
 
-  if (userCount > 0) {
-    html += '<li>平均稼働時間: ' + (totalHours / userCount).toFixed(2) + '時間/人</li>';
-    html += '<li>平均タスク数: ' + (totalTaskCount / userCount).toFixed(1) + '件/人</li>';
-  }
+  // 管理者向けAI分析を生成
+  const managementInsight = generateManagementInsight(individualFeedbacks, userGroups, totalHours, totalTaskCount, userCount, types, customers);
 
-  html += '</ul>';
+  // サマリーHTMLを作成
+  let html = '<html><head><meta charset="utf-8"></head><body style="font-family: sans-serif; line-height: 1.6; max-width: 900px; margin: 0 auto; padding: 20px;">';
 
-  html += '<hr>';
+  // ヘッダー
+  html += '<div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 10px; margin-bottom: 30px;">';
+  html += '<h1 style="margin: 0; font-size: 28px;">管理者レポート</h1>';
+  html += '<p style="margin: 10px 0 0 0; opacity: 0.9; font-size: 16px;">' + dateString + ' チーム業務サマリー</p>';
+  html += '</div>';
 
-  html += '<h2>👥 個別フィードバック</h2>';
+  // 全体統計
+  html += '<div style="background-color: #f8f9fa; padding: 25px; margin-bottom: 30px; border-radius: 10px;">';
+  html += '<h2 style="margin-top: 0; color: #333; border-bottom: 2px solid #667eea; padding-bottom: 10px;">■ 全体統計</h2>';
+  html += '<div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 20px;">';
+
+  html += '<div style="background-color: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">';
+  html += '<div style="font-size: 14px; color: #6c757d; margin-bottom: 5px;">対象メンバー</div>';
+  html += '<div style="font-size: 28px; font-weight: bold; color: #667eea;">' + userCount + ' <span style="font-size: 16px;">名</span></div>';
+  html += '</div>';
+
+  html += '<div style="background-color: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">';
+  html += '<div style="font-size: 14px; color: #6c757d; margin-bottom: 5px;">総稼働時間</div>';
+  html += '<div style="font-size: 28px; font-weight: bold; color: #667eea;">' + totalHours.toFixed(1) + ' <span style="font-size: 16px;">時間</span></div>';
+  html += '</div>';
+
+  html += '<div style="background-color: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">';
+  html += '<div style="font-size: 14px; color: #6c757d; margin-bottom: 5px;">総タスク数</div>';
+  html += '<div style="font-size: 28px; font-weight: bold; color: #667eea;">' + totalTaskCount + ' <span style="font-size: 16px;">件</span></div>';
+  html += '</div>';
+
+  html += '<div style="background-color: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">';
+  html += '<div style="font-size: 14px; color: #6c757d; margin-bottom: 5px;">平均稼働時間</div>';
+  html += '<div style="font-size: 28px; font-weight: bold; color: #667eea;">' + (userCount > 0 ? (totalHours / userCount).toFixed(1) : '0.0') + ' <span style="font-size: 16px;">時間/人</span></div>';
+  html += '</div>';
+
+  html += '</div>';
+  html += '</div>';
+
+  // AIによるマネジメント分析
+  html += '<div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; padding: 25px; border-radius: 10px; margin-bottom: 30px;">';
+  html += '<h2 style="margin-top: 0;">★ AIマネジメント分析</h2>';
+  html += '<div style="background-color: rgba(255, 255, 255, 0.2); padding: 20px; border-radius: 8px; line-height: 1.8;">';
+  html += managementInsight.replace(/\n/g, '<br>');
+  html += '</div>';
+  html += '</div>';
+
+  // メンバー別詳細
+  html += '<div style="background-color: white; padding: 25px; margin-bottom: 30px; border-radius: 10px; border: 1px solid #dee2e6;">';
+  html += '<h2 style="margin-top: 0; color: #333; border-bottom: 2px solid #667eea; padding-bottom: 10px;">■ メンバー別詳細</h2>';
 
   for (let i = 0; i < individualFeedbacks.length; i++) {
     const feedback = individualFeedbacks[i];
-    html += '<div style="margin-bottom: 24px; border-left: 4px solid #2196F3; padding-left: 12px;">';
-    html += '<h3>' + (feedback.userName || '不明') + '</h3>';
-    html += '<p><strong>稼働時間:</strong> ' + (feedback.feedback && feedback.feedback.totalDuration ? feedback.feedback.totalDuration.toFixed(2) : '0.00') + '時間 | ';
-    html += '<strong>タスク数:</strong> ' + (feedback.feedback && feedback.feedback.taskCount ? feedback.feedback.taskCount : 0) + '件</p>';
+    html += '<div style="margin-top: 20px; padding: 20px; background-color: #f8f9fa; border-left: 4px solid #667eea; border-radius: 5px;">';
+    html += '<h3 style="margin-top: 0; color: #495057;">' + (feedback.userName || '不明') + '</h3>';
+
+    html += '<div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 15px;">';
+
+    html += '<div>';
+    html += '<div style="font-size: 12px; color: #6c757d;">稼働時間</div>';
+    html += '<div style="font-size: 20px; font-weight: bold; color: #667eea;">' + (feedback.feedback && feedback.feedback.totalDuration ? feedback.feedback.totalDuration.toFixed(2) : '0.00') + ' 時間</div>';
+    html += '</div>';
+
+    html += '<div>';
+    html += '<div style="font-size: 12px; color: #6c757d;">タスク数</div>';
+    html += '<div style="font-size: 20px; font-weight: bold; color: #667eea;">' + (feedback.feedback && feedback.feedback.taskCount ? feedback.feedback.taskCount : 0) + ' 件</div>';
+    html += '</div>';
+
+    html += '<div>';
+    html += '<div style="font-size: 12px; color: #6c757d;">平均タスク時間</div>';
+    html += '<div style="font-size: 20px; font-weight: bold; color: #667eea;">' + (feedback.feedback && feedback.feedback.taskCount > 0 ? (feedback.feedback.totalDuration / feedback.feedback.taskCount).toFixed(2) : '0.00') + ' 時間</div>';
+    html += '</div>';
+
+    html += '</div>';
 
     if (feedback.feedback && feedback.feedback.mostTimeTask) {
-      html += '<p><strong>最長タスク:</strong> ' + (feedback.feedback.mostTimeTask.content || '（内容なし）') + '</p>';
+      html += '<div style="background-color: white; padding: 12px; border-radius: 5px; margin-top: 10px;">';
+      html += '<div style="font-size: 12px; color: #6c757d; margin-bottom: 5px;">最も時間をかけたタスク</div>';
+      html += '<div style="color: #495057;">' + (feedback.feedback.mostTimeTask.content || '（内容なし）') + '</div>';
+      html += '</div>';
     }
 
-    html += '<div style="background-color: #f9f9f9; padding: 10px; border-radius: 4px; margin-top: 8px;">';
-    html += '<strong>AI評価:</strong><br>';
-    html += (feedback.feedback && feedback.feedback.aiComment ? feedback.feedback.aiComment.replace(/\n/g, '<br>') : 'フィードバック未取得');
-    html += '</div>';
     html += '</div>';
   }
 
-  html += '<hr>';
-  html += '<p style="font-size: 12px; color: #666;">このメールは自動で送信されています。(' + new Date().toLocaleString('ja-JP') + ')</p>';
+  html += '</div>';
+
+  // フッター
+  html += '<div style="text-align: center; padding-top: 20px; border-top: 2px solid #dee2e6;">';
+  html += '<p style="font-size: 12px; color: #6c757d; margin: 5px 0;">管理者向け業務レポート - 自動生成</p>';
+  html += '<p style="font-size: 12px; color: #6c757d; margin: 5px 0;">送信日時: ' + new Date().toLocaleString('ja-JP') + '</p>';
+  html += '</div>';
 
   html += '</body></html>';
 
   try {
-    GmailApp.sendEmail(adminEmail, dateString + ' 業務フィードバックサマリー（管理者用）', '', { htmlBody: html });
+    GmailApp.sendEmail(adminEmail, '[管理者レポート] ' + dateString + ' チーム業務サマリー', '', { htmlBody: html });
     Logger.log('管理者へのサマリーメール送信完了: ' + adminEmail);
   } catch (error) {
     Logger.log('管理者メール送信エラー: ' + error);
