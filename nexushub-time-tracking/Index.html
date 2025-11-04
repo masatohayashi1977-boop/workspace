@@ -1,0 +1,1150 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NexusHub - タイムトラッキング</title>
+  <link rel="icon" type="image/png" href="https://img.icons8.com/fluency/96/clock.png">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Noto Sans JP', sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    header {
+      background: linear-gradient(135deg, rgba(15, 32, 39, 0.95) 0%, rgba(32, 58, 67, 0.95) 100%);
+      border-radius: 16px;
+      padding: 20px 30px;
+      margin-bottom: 20px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(10px);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    h1 {
+      color: #e8eaf6;
+      font-size: 28px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo {
+      font-size: 36px;
+    }
+
+    .user-info {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+    }
+
+    .user-email {
+      font-size: 14px;
+      font-weight: 700;
+      color: #e8eaf6;
+    }
+
+    .clock {
+      font-size: 20px;
+      font-weight: 700;
+      color: #667eea;
+    }
+
+    .tracking-card {
+      background: linear-gradient(135deg, rgba(15, 32, 39, 0.95) 0%, rgba(32, 58, 67, 0.95) 100%);
+      border-radius: 16px;
+      padding: 30px;
+      margin-bottom: 20px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .tracking-status {
+      text-align: center;
+      padding: 40px;
+    }
+
+    .status-icon {
+      font-size: 80px;
+      margin-bottom: 20px;
+    }
+
+    .status-icon.active {
+      color: #43e97b;
+      animation: pulse 2s infinite;
+    }
+
+    .status-icon.inactive {
+      color: #9fa8da;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .status-text {
+      font-size: 24px;
+      font-weight: 700;
+      color: #e8eaf6;
+      margin-bottom: 10px;
+    }
+
+    .tracking-time {
+      font-size: 48px;
+      font-weight: 700;
+      color: #667eea;
+      margin: 20px 0;
+      font-family: 'Courier New', monospace;
+    }
+
+    .tracking-info {
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      margin: 20px 0;
+      flex-wrap: wrap;
+    }
+
+    .info-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #9fa8da;
+      font-size: 14px;
+    }
+
+    .info-item .material-icons {
+      font-size: 20px;
+      color: #667eea;
+    }
+
+    .tracking-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-top: 30px;
+    }
+
+    .btn {
+      padding: 15px 40px;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: 'Noto Sans JP', sans-serif;
+    }
+
+    .btn-start {
+      background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+      color: #1a1a2e;
+      box-shadow: 0 4px 15px rgba(67, 233, 123, 0.3);
+    }
+
+    .btn-start:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(67, 233, 123, 0.4);
+    }
+
+    .btn-stop {
+      background: linear-gradient(135deg, #F093FB 0%, #F5576C 100%);
+      color: white;
+      box-shadow: 0 4px 15px rgba(245, 87, 108, 0.3);
+    }
+
+    .btn-stop:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(245, 87, 108, 0.4);
+    }
+
+    .btn-secondary {
+      background: rgba(15, 32, 39, 0.6);
+      color: #c5cae9;
+      border: 2px solid rgba(102, 126, 234, 0.3);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(102, 126, 234, 0.3);
+      border-color: #667eea;
+    }
+
+    .summary-section {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    .summary-card {
+      background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%);
+      border-radius: 16px;
+      padding: 25px;
+      border: 1px solid rgba(102, 126, 234, 0.2);
+    }
+
+    .summary-card h3 {
+      color: #e8eaf6;
+      font-size: 18px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .summary-value {
+      font-size: 36px;
+      font-weight: 700;
+      color: #667eea;
+      margin-bottom: 10px;
+    }
+
+    .summary-label {
+      font-size: 14px;
+      color: #9fa8da;
+    }
+
+    .project-list {
+      margin-top: 15px;
+    }
+
+    .project-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(232, 234, 246, 0.1);
+      font-size: 14px;
+    }
+
+    .project-name {
+      color: #e8eaf6;
+    }
+
+    .project-time {
+      color: #667eea;
+      font-weight: 600;
+    }
+
+    .entries-section {
+      background: linear-gradient(135deg, rgba(15, 32, 39, 0.95) 0%, rgba(32, 58, 67, 0.95) 100%);
+      border-radius: 16px;
+      padding: 30px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .entries-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 25px;
+    }
+
+    .entries-header h2 {
+      color: #e8eaf6;
+      font-size: 24px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .date-filter {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .date-filter input {
+      background: rgba(15, 32, 39, 0.6);
+      color: #e8eaf6;
+      border: 2px solid rgba(232, 234, 246, 0.2);
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 14px;
+      font-family: 'Noto Sans JP', sans-serif;
+    }
+
+    .date-filter input:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    .entries-list {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .entry-item {
+      background: rgba(15, 32, 39, 0.6);
+      border-radius: 12px;
+      padding: 20px;
+      border: 1px solid rgba(232, 234, 246, 0.1);
+      transition: all 0.3s ease;
+    }
+
+    .entry-item:hover {
+      background: rgba(102, 126, 234, 0.1);
+      border-color: #667eea;
+    }
+
+    .entry-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      margin-bottom: 12px;
+    }
+
+    .entry-project {
+      font-size: 18px;
+      font-weight: 700;
+      color: #e8eaf6;
+    }
+
+    .entry-duration {
+      font-size: 24px;
+      font-weight: 700;
+      color: #43e97b;
+      white-space: nowrap;
+    }
+
+    .entry-details {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+
+    .entry-detail {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: #9fa8da;
+      font-size: 13px;
+    }
+
+    .entry-detail .material-icons {
+      font-size: 16px;
+    }
+
+    .entry-memo {
+      color: #c5cae9;
+      font-size: 14px;
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid rgba(232, 234, 246, 0.1);
+    }
+
+    .entry-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .btn-small {
+      padding: 6px 12px;
+      font-size: 12px;
+      border-radius: 6px;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.85);
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .modal-content {
+      background: linear-gradient(135deg, rgba(15, 32, 39, 0.98) 0%, rgba(32, 58, 67, 0.98) 100%);
+      margin: 5% auto;
+      padding: 30px;
+      border-radius: 16px;
+      max-width: 500px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+      animation: slideDown 0.3s ease;
+      border: 1px solid rgba(232, 234, 246, 0.1);
+    }
+
+    @keyframes slideDown {
+      from {
+        transform: translateY(-50px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 25px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid rgba(232, 234, 246, 0.1);
+    }
+
+    .modal-header h3 {
+      color: #e8eaf6;
+      font-size: 22px;
+      font-weight: 700;
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      font-size: 32px;
+      color: #9fa8da;
+      cursor: pointer;
+      padding: 0;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      transition: all 0.3s ease;
+    }
+
+    .close-btn:hover {
+      background: rgba(102, 126, 234, 0.2);
+      color: #e8eaf6;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #e8eaf6;
+      font-size: 14px;
+    }
+
+    .form-input, .form-select {
+      width: 100%;
+      border: 2px solid rgba(232, 234, 246, 0.2);
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 14px;
+      font-family: 'Noto Sans JP', sans-serif;
+      transition: border-color 0.3s ease;
+      background: rgba(15, 32, 39, 0.6);
+      color: #e8eaf6;
+    }
+
+    .form-input:focus, .form-select:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      margin-top: 25px;
+    }
+
+    .loading-spinner {
+      text-align: center;
+      padding: 40px;
+      color: #9fa8da;
+    }
+
+    .spinner {
+      border: 4px solid rgba(102, 126, 234, 0.2);
+      border-top: 4px solid #667eea;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 15px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .no-entries {
+      text-align: center;
+      color: #9fa8da;
+      padding: 40px;
+      font-size: 16px;
+    }
+
+    @media (max-width: 768px) {
+      .tracking-buttons {
+        flex-direction: column;
+      }
+
+      .btn {
+        width: 100%;
+        justify-content: center;
+      }
+
+      .date-filter {
+        flex-direction: column;
+        width: 100%;
+      }
+
+      .date-filter input {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="header-left">
+        <h1>
+          <span class="logo">⏱️</span>
+          NexusHub タイムトラッキング
+        </h1>
+      </div>
+      <div class="user-info">
+        <div class="user-email" id="userEmail">読み込み中...</div>
+        <div class="clock" id="clock">--:--:--</div>
+      </div>
+    </header>
+
+    <!-- トラッキング状態 -->
+    <div class="tracking-card">
+      <div class="tracking-status" id="trackingStatus">
+        <div class="loading-spinner">
+          <div class="spinner"></div>
+          <p>読み込み中...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- サマリーセクション -->
+    <div class="summary-section">
+      <div class="summary-card">
+        <h3><span class="material-icons">today</span>今日の作業時間</h3>
+        <div class="summary-value" id="todayHours">0.0</div>
+        <div class="summary-label">時間</div>
+        <div class="project-list" id="todayProjects"></div>
+      </div>
+
+      <div class="summary-card">
+        <h3><span class="material-icons">calendar_today</span>今週の作業時間</h3>
+        <div id="weeklyChart" style="margin-top: 15px;"></div>
+      </div>
+    </div>
+
+    <!-- エントリー一覧 -->
+    <div class="entries-section">
+      <div class="entries-header">
+        <h2><span class="material-icons">history</span>作業履歴</h2>
+        <div class="date-filter">
+          <input type="date" id="startDateFilter" class="form-input">
+          <span style="color: #9fa8da;">〜</span>
+          <input type="date" id="endDateFilter" class="form-input">
+          <button class="btn btn-secondary btn-small" onclick="applyDateFilter()">
+            <span class="material-icons" style="font-size: 16px;">search</span>
+            表示
+          </button>
+        </div>
+      </div>
+      <div class="entries-list" id="entriesList">
+        <div class="loading-spinner">
+          <div class="spinner"></div>
+          <p>読み込み中...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 開始モーダル -->
+  <div id="startModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>タイムトラッキング開始</h3>
+        <button class="close-btn" onclick="closeModal('startModal')">&times;</button>
+      </div>
+      <div>
+        <div class="form-group">
+          <label for="projectInput">プロジェクト</label>
+          <select id="projectInput" class="form-select">
+            <option value="">プロジェクトを選択...</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="taskInput">タスク</label>
+          <input type="text" id="taskInput" class="form-input" placeholder="タスク名を入力...">
+        </div>
+        <div class="form-group">
+          <label for="memoInput">メモ（任意）</label>
+          <input type="text" id="memoInput" class="form-input" placeholder="メモを入力...">
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-secondary btn-small" onclick="closeModal('startModal')">キャンセル</button>
+          <button class="btn btn-start btn-small" onclick="confirmStart()">
+            <span class="material-icons" style="font-size: 16px;">play_arrow</span>
+            開始
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 編集モーダル -->
+  <div id="editModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>エントリー編集</h3>
+        <button class="close-btn" onclick="closeModal('editModal')">&times;</button>
+      </div>
+      <div>
+        <div class="form-group">
+          <label for="editProjectInput">プロジェクト</label>
+          <select id="editProjectInput" class="form-select">
+            <option value="">プロジェクトを選択...</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="editTaskInput">タスク</label>
+          <input type="text" id="editTaskInput" class="form-input" placeholder="タスク名を入力...">
+        </div>
+        <div class="form-group">
+          <label for="editMemoInput">メモ</label>
+          <input type="text" id="editMemoInput" class="form-input" placeholder="メモを入力...">
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-secondary btn-small" onclick="closeModal('editModal')">キャンセル</button>
+          <button class="btn btn-start btn-small" onclick="saveEdit()">
+            <span class="material-icons" style="font-size: 16px;">save</span>
+            保存
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentTracking = null;
+    let trackingTimer = null;
+    let editingEntryId = null;
+    let allProjects = [];
+
+    // 時計の更新
+    function updateClock() {
+      const now = new Date();
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const seconds = String(now.getSeconds()).padStart(2, '0');
+
+      const clockElement = document.getElementById('clock');
+      if (clockElement) {
+        clockElement.textContent = hours + ':' + minutes + ':' + seconds;
+      }
+    }
+
+    updateClock();
+    setInterval(updateClock, 1000);
+
+    // ユーザー情報を取得
+    google.script.run
+      .withSuccessHandler(function(userInfo) {
+        const emailElement = document.getElementById('userEmail');
+        if (emailElement) {
+          emailElement.textContent = userInfo.email;
+        }
+      })
+      .getUserInfo();
+
+    // 初期化
+    function init() {
+      loadProjects();
+      loadCurrentTracking();
+      loadTodaySummary();
+      loadWeeklySummary();
+      loadEntries();
+
+      // デフォルトの日付フィルターを設定（今月）
+      const today = new Date();
+      const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+
+      const startDateFilter = document.getElementById('startDateFilter');
+      const endDateFilter = document.getElementById('endDateFilter');
+
+      if (startDateFilter) {
+        startDateFilter.value = formatDateInput(firstDay);
+      }
+      if (endDateFilter) {
+        endDateFilter.value = formatDateInput(today);
+      }
+    }
+
+    // プロジェクト一覧を読み込み
+    function loadProjects() {
+      google.script.run
+        .withSuccessHandler(function(result) {
+          if (result.success) {
+            allProjects = result.projects;
+            updateProjectSelects();
+          }
+        })
+        .getProjects();
+    }
+
+    // プロジェクトセレクトを更新
+    function updateProjectSelects() {
+      const projectInput = document.getElementById('projectInput');
+      const editProjectInput = document.getElementById('editProjectInput');
+
+      if (projectInput) {
+        let options = '<option value="">プロジェクトを選択...</option>';
+        allProjects.forEach(function(project) {
+          options += '<option value="' + escapeHtml(project.name) + '">' + escapeHtml(project.name) + '</option>';
+        });
+        projectInput.innerHTML = options;
+      }
+
+      if (editProjectInput) {
+        let options = '<option value="">プロジェクトを選択...</option>';
+        allProjects.forEach(function(project) {
+          options += '<option value="' + escapeHtml(project.name) + '">' + escapeHtml(project.name) + '</option>';
+        });
+        editProjectInput.innerHTML = options;
+      }
+    }
+
+    // 現在のトラッキング状態を読み込み
+    function loadCurrentTracking() {
+      google.script.run
+        .withSuccessHandler(function(result) {
+          if (result.success) {
+            currentTracking = result.tracking;
+            updateTrackingUI();
+
+            if (currentTracking) {
+              startTrackingTimer();
+            }
+          }
+        })
+        .getCurrentTimeTracking();
+    }
+
+    // トラッキングUIを更新
+    function updateTrackingUI() {
+      const statusElement = document.getElementById('trackingStatus');
+      if (!statusElement) return;
+
+      if (currentTracking) {
+        const elapsed = Math.floor((Date.now() - currentTracking.startTime) / 1000);
+        const hours = Math.floor(elapsed / 3600);
+        const minutes = Math.floor((elapsed % 3600) / 60);
+        const seconds = elapsed % 60;
+
+        statusElement.innerHTML =
+          '<div class="status-icon active">⏱️</div>' +
+          '<div class="status-text">作業中</div>' +
+          '<div class="tracking-time" id="trackingTime">' +
+          String(hours).padStart(2, '0') + ':' +
+          String(minutes).padStart(2, '0') + ':' +
+          String(seconds).padStart(2, '0') +
+          '</div>' +
+          '<div class="tracking-info">' +
+          (currentTracking.project ? '<div class="info-item"><span class="material-icons">folder</span>' + escapeHtml(currentTracking.project) + '</div>' : '') +
+          (currentTracking.task ? '<div class="info-item"><span class="material-icons">assignment</span>' + escapeHtml(currentTracking.task) + '</div>' : '') +
+          '</div>' +
+          '<div class="tracking-buttons">' +
+          '<button class="btn btn-stop" onclick="stopTracking()">' +
+          '<span class="material-icons">stop</span>停止' +
+          '</button>' +
+          '</div>';
+      } else {
+        statusElement.innerHTML =
+          '<div class="status-icon inactive">⏱️</div>' +
+          '<div class="status-text">待機中</div>' +
+          '<div class="tracking-time">00:00:00</div>' +
+          '<div class="tracking-buttons">' +
+          '<button class="btn btn-start" onclick="openStartModal()">' +
+          '<span class="material-icons">play_arrow</span>開始' +
+          '</button>' +
+          '</div>';
+      }
+    }
+
+    // トラッキングタイマーを開始
+    function startTrackingTimer() {
+      if (trackingTimer) {
+        clearInterval(trackingTimer);
+      }
+
+      trackingTimer = setInterval(function() {
+        if (currentTracking) {
+          const elapsed = Math.floor((Date.now() - currentTracking.startTime) / 1000);
+          const hours = Math.floor(elapsed / 3600);
+          const minutes = Math.floor((elapsed % 3600) / 60);
+          const seconds = elapsed % 60;
+
+          const timeElement = document.getElementById('trackingTime');
+          if (timeElement) {
+            timeElement.textContent =
+              String(hours).padStart(2, '0') + ':' +
+              String(minutes).padStart(2, '0') + ':' +
+              String(seconds).padStart(2, '0');
+          }
+        }
+      }, 1000);
+    }
+
+    // 開始モーダルを開く
+    function openStartModal() {
+      const modal = document.getElementById('startModal');
+      const projectInput = document.getElementById('projectInput');
+      const taskInput = document.getElementById('taskInput');
+      const memoInput = document.getElementById('memoInput');
+
+      if (projectInput) projectInput.value = '';
+      if (taskInput) taskInput.value = '';
+      if (memoInput) memoInput.value = '';
+
+      if (modal) modal.style.display = 'block';
+    }
+
+    // トラッキング開始を確定
+    function confirmStart() {
+      const projectInput = document.getElementById('projectInput');
+      const taskInput = document.getElementById('taskInput');
+      const memoInput = document.getElementById('memoInput');
+
+      const project = projectInput ? projectInput.value : '';
+      const task = taskInput ? taskInput.value.trim() : '';
+      const memo = memoInput ? memoInput.value.trim() : '';
+
+      closeModal('startModal');
+
+      google.script.run
+        .withSuccessHandler(function(result) {
+          if (result.success) {
+            loadCurrentTracking();
+            loadTodaySummary();
+          } else {
+            alert(result.error || 'タイムトラッキングの開始に失敗しました');
+          }
+        })
+        .withFailureHandler(function(error) {
+          alert('タイムトラッキングの開始に失敗しました');
+        })
+        .startTimeTracking(project, task, memo);
+    }
+
+    // トラッキング停止
+    function stopTracking() {
+      if (!confirm('タイムトラッキングを停止しますか？')) return;
+
+      google.script.run
+        .withSuccessHandler(function(result) {
+          if (result.success) {
+            if (trackingTimer) {
+              clearInterval(trackingTimer);
+              trackingTimer = null;
+            }
+            currentTracking = null;
+            updateTrackingUI();
+            loadTodaySummary();
+            loadWeeklySummary();
+            loadEntries();
+          } else {
+            alert(result.error || 'タイムトラッキングの停止に失敗しました');
+          }
+        })
+        .withFailureHandler(function(error) {
+          alert('タイムトラッキングの停止に失敗しました');
+        })
+        .stopTimeTracking();
+    }
+
+    // 今日のサマリーを読み込み
+    function loadTodaySummary() {
+      google.script.run
+        .withSuccessHandler(function(result) {
+          if (result.success) {
+            const hoursElement = document.getElementById('todayHours');
+            if (hoursElement) {
+              hoursElement.textContent = result.totalHours;
+            }
+
+            const projectsElement = document.getElementById('todayProjects');
+            if (projectsElement && result.projectTime) {
+              let html = '';
+              const projects = Object.entries(result.projectTime);
+              projects.forEach(function([project, minutes]) {
+                const hours = (minutes / 60).toFixed(1);
+                html += '<div class="project-item">' +
+                        '<span class="project-name">' + escapeHtml(project) + '</span>' +
+                        '<span class="project-time">' + hours + 'h</span>' +
+                        '</div>';
+              });
+              projectsElement.innerHTML = html || '<div style="color: #9fa8da; text-align: center; padding: 10px;">データなし</div>';
+            }
+          }
+        })
+        .getTodaySummary();
+    }
+
+    // 週のサマリーを読み込み
+    function loadWeeklySummary() {
+      google.script.run
+        .withSuccessHandler(function(result) {
+          if (result.success && result.dailyTime) {
+            const chartElement = document.getElementById('weeklyChart');
+            if (chartElement) {
+              let html = '';
+              const days = ['月', '火', '水', '木', '金', '土', '日'];
+              const dates = Object.keys(result.dailyTime).sort();
+
+              dates.forEach(function(dateKey, index) {
+                const minutes = result.dailyTime[dateKey];
+                const hours = (minutes / 60).toFixed(1);
+                const date = new Date(dateKey);
+                const dayOfWeek = days[(date.getDay() + 6) % 7];
+
+                html += '<div class="project-item">' +
+                        '<span class="project-name">' + dayOfWeek + ' (' + dateKey.split('-')[2] + '日)</span>' +
+                        '<span class="project-time">' + hours + 'h</span>' +
+                        '</div>';
+              });
+              chartElement.innerHTML = html || '<div style="color: #9fa8da; text-align: center; padding: 10px;">データなし</div>';
+            }
+          }
+        })
+        .getWeeklySummary();
+    }
+
+    // エントリー一覧を読み込み
+    function loadEntries() {
+      const startDateFilter = document.getElementById('startDateFilter');
+      const endDateFilter = document.getElementById('endDateFilter');
+
+      const startDate = startDateFilter ? startDateFilter.value : null;
+      const endDate = endDateFilter ? endDateFilter.value : null;
+
+      google.script.run
+        .withSuccessHandler(function(result) {
+          const listElement = document.getElementById('entriesList');
+          if (!listElement) return;
+
+          if (result.success && result.entries.length > 0) {
+            let html = '';
+            result.entries.forEach(function(entry) {
+              const startTime = new Date(entry.startTime);
+              const hours = Math.floor(entry.duration / 60);
+              const minutes = entry.duration % 60;
+              const durationText = hours + 'h ' + minutes + 'm';
+
+              html += '<div class="entry-item">' +
+                      '<div class="entry-header">' +
+                      '<div class="entry-project">' + escapeHtml(entry.project || '未分類') + '</div>' +
+                      '<div class="entry-duration">' + durationText + '</div>' +
+                      '</div>' +
+                      '<div class="entry-details">' +
+                      '<div class="entry-detail">' +
+                      '<span class="material-icons">event</span>' +
+                      formatDate(startTime) +
+                      '</div>' +
+                      '<div class="entry-detail">' +
+                      '<span class="material-icons">schedule</span>' +
+                      formatTime(startTime) + ' - ' + formatTime(new Date(entry.endTime)) +
+                      '</div>';
+
+              if (entry.task) {
+                html += '<div class="entry-detail">' +
+                        '<span class="material-icons">assignment</span>' +
+                        escapeHtml(entry.task) +
+                        '</div>';
+              }
+
+              html += '</div>';
+
+              if (entry.memo) {
+                html += '<div class="entry-memo">📝 ' + escapeHtml(entry.memo) + '</div>';
+              }
+
+              html += '<div class="entry-actions">' +
+                      '<button class="btn btn-secondary btn-small" onclick="editEntry(\'' + entry.id + '\', \'' +
+                      escapeHtml(entry.project || '').replace(/'/g, "\\'") + '\', \'' +
+                      escapeHtml(entry.task || '').replace(/'/g, "\\'") + '\', \'' +
+                      escapeHtml(entry.memo || '').replace(/'/g, "\\'") + '\')">' +
+                      '<span class="material-icons" style="font-size: 14px;">edit</span>編集' +
+                      '</button>' +
+                      '<button class="btn btn-secondary btn-small" onclick="deleteEntry(\'' + entry.id + '\')" style="border-color: rgba(245, 87, 108, 0.3);">' +
+                      '<span class="material-icons" style="font-size: 14px;">delete</span>削除' +
+                      '</button>' +
+                      '</div>' +
+                      '</div>';
+            });
+            listElement.innerHTML = html;
+          } else {
+            listElement.innerHTML = '<div class="no-entries">この期間のエントリーはありません</div>';
+          }
+        })
+        .getTimeEntries(startDate, endDate);
+    }
+
+    // 日付フィルターを適用
+    function applyDateFilter() {
+      loadEntries();
+    }
+
+    // エントリーを編集
+    function editEntry(id, project, task, memo) {
+      editingEntryId = id;
+
+      const modal = document.getElementById('editModal');
+      const editProjectInput = document.getElementById('editProjectInput');
+      const editTaskInput = document.getElementById('editTaskInput');
+      const editMemoInput = document.getElementById('editMemoInput');
+
+      if (editProjectInput) editProjectInput.value = project;
+      if (editTaskInput) editTaskInput.value = task;
+      if (editMemoInput) editMemoInput.value = memo;
+
+      if (modal) modal.style.display = 'block';
+    }
+
+    // 編集を保存
+    function saveEdit() {
+      const editProjectInput = document.getElementById('editProjectInput');
+      const editTaskInput = document.getElementById('editTaskInput');
+      const editMemoInput = document.getElementById('editMemoInput');
+
+      const project = editProjectInput ? editProjectInput.value : '';
+      const task = editTaskInput ? editTaskInput.value.trim() : '';
+      const memo = editMemoInput ? editMemoInput.value.trim() : '';
+
+      closeModal('editModal');
+
+      google.script.run
+        .withSuccessHandler(function(result) {
+          if (result.success) {
+            loadEntries();
+            loadTodaySummary();
+          } else {
+            alert(result.error || '更新に失敗しました');
+          }
+        })
+        .updateTimeEntry(editingEntryId, project, task, memo);
+    }
+
+    // エントリーを削除
+    function deleteEntry(id) {
+      if (!confirm('このエントリーを削除しますか？')) return;
+
+      google.script.run
+        .withSuccessHandler(function(result) {
+          if (result.success) {
+            loadEntries();
+            loadTodaySummary();
+            loadWeeklySummary();
+          } else {
+            alert(result.error || '削除に失敗しました');
+          }
+        })
+        .deleteTimeEntry(id);
+    }
+
+    // モーダルを閉じる
+    function closeModal(modalId) {
+      const modal = document.getElementById(modalId);
+      if (modal) modal.style.display = 'none';
+    }
+
+    // ヘルパー関数
+    function formatDate(date) {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return year + '年' + month + '月' + day + '日';
+    }
+
+    function formatTime(date) {
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      return hours + ':' + minutes;
+    }
+
+    function formatDateInput(date) {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return year + '-' + month + '-' + day;
+    }
+
+    function escapeHtml(text) {
+      if (!text) return '';
+      return String(text)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    // モーダルの外側をクリックで閉じる
+    window.onclick = function(event) {
+      if (event.target.classList.contains('modal')) {
+        event.target.style.display = 'none';
+      }
+    };
+
+    // 初期化
+    init();
+
+    // 定期的にサマリーを更新
+    setInterval(function() {
+      loadTodaySummary();
+      loadWeeklySummary();
+    }, 60000);
+  </script>
+</body>
+</html>
