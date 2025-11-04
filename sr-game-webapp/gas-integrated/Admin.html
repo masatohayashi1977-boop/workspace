@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>管理者画面 - 社労士ゲーム</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #4285f4;
+            --secondary-color: #34a853;
+            --danger-color: #ea4335;
+            --dark-color: #202124;
+            --light-color: #f8f9fa;
+            --border-color: #dadce0;
+            --text-color: #202124;
+            --text-secondary: #5f6368;
+            --shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+            --shadow-lg: 0 10px 20px rgba(0, 0, 0, 0.15), 0 3px 6px rgba(0, 0, 0, 0.10);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: var(--text-color);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .admin-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .admin-header {
+            background: white;
+            padding: 2rem;
+            border-radius: 16px;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .admin-header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .admin-section {
+            background: white;
+            padding: 2rem;
+            border-radius: 16px;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .admin-section h2 {
+            font-size: 1.3rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .back-link {
+            display: inline-block;
+            color: var(--primary-color);
+            text-decoration: none;
+            margin-bottom: 1rem;
+            font-weight: 500;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        /* 統計カード */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .stat-card {
+            background: var(--light-color);
+            padding: 1.5rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+        }
+
+        /* フォーム */
+        .form-grid {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 0.875rem;
+            font-size: 1rem;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.1);
+        }
+
+        /* ボタン */
+        .btn {
+            padding: 0.875rem 1.75rem;
+            font-size: 1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: 100%;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #3367d6;
+        }
+
+        .btn-secondary {
+            background: var(--light-color);
+            color: var(--text-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border-color);
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        /* ユーザーリスト */
+        .user-list {
+            margin-top: 1.5rem;
+        }
+
+        .user-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: var(--light-color);
+            border-radius: 8px;
+            margin-bottom: 0.75rem;
+        }
+
+        .user-info {
+            flex: 1;
+        }
+
+        .user-name {
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+
+        .user-email {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        .user-id {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            margin-left: 1rem;
+        }
+
+        .info-text {
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+        }
+
+        /* ローディング */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            color: white;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 1rem;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* メッセージ */
+        .message {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            box-shadow: var(--shadow-lg);
+            z-index: 1001;
+            max-width: 90%;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        .error-message {
+            background: var(--danger-color);
+            color: white;
+        }
+
+        .success-message {
+            background: var(--secondary-color);
+            color: white;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        /* レスポンシブ */
+        @media (max-width: 480px) {
+            .admin-container {
+                padding: 1rem;
+            }
+
+            .admin-header,
+            .admin-section {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <a href="<?= ScriptApp.getService().getUrl() ?>" class="back-link">← ゲーム画面に戻る</a>
+
+        <!-- ヘッダー -->
+        <div class="admin-header">
+            <h1>🔧 管理者画面</h1>
+            <p class="subtitle">ユーザー管理とデータ確認</p>
+        </div>
+
+        <!-- 統計情報 -->
+        <div class="admin-section">
+            <h2>📊 統計情報</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number" id="totalUsers">0</div>
+                    <div class="stat-label">登録ユーザー数</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="totalPlays">0</div>
+                    <div class="stat-label">総プレイ数</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="todayPlays">0</div>
+                    <div class="stat-label">今日のプレイ数</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ユーザー登録フォーム -->
+        <div class="admin-section">
+            <h2>👤 新規ユーザー登録</h2>
+            <form id="registerForm" class="form-grid">
+                <div class="form-group">
+                    <label for="userName">名前 *</label>
+                    <input type="text" id="userName" class="input-field" required placeholder="例: 田中太郎">
+                </div>
+                <div class="form-group">
+                    <label for="userEmail">メールアドレス（任意）</label>
+                    <input type="email" id="userEmail" class="input-field" placeholder="例: tanaka@example.com">
+                </div>
+                <button type="submit" class="btn btn-primary">ユーザーを登録</button>
+            </form>
+        </div>
+
+        <!-- ユーザー一覧 -->
+        <div class="admin-section">
+            <h2>📋 登録ユーザー一覧</h2>
+            <button id="refreshUsers" class="btn btn-secondary" style="margin-bottom: 1rem;">
+                🔄 更新
+            </button>
+            <div id="userList" class="user-list">
+                <!-- ユーザー一覧がここに表示されます -->
+            </div>
+        </div>
+
+        <!-- スプレッドシートへのリンク -->
+        <div class="admin-section">
+            <h2>🔗 スプレッドシート</h2>
+            <p class="info-text">データを直接確認・編集するにはスプレッドシートを開いてください。</p>
+            <button id="openSpreadsheet" class="btn btn-secondary">スプレッドシートを開く</button>
+        </div>
+    </div>
+
+    <!-- ローディングオーバーレイ -->
+    <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+        <div class="loading-spinner"></div>
+        <p>読み込み中...</p>
+    </div>
+
+    <!-- メッセージ領域 -->
+    <div id="messageArea"></div>
+
+    <script>
+        // ページ読み込み時の初期化
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('管理者画面初期化中...');
+            initializeAdmin();
+        });
+
+        /**
+         * 管理者画面の初期化
+         */
+        async function initializeAdmin() {
+            setupEventListeners();
+            await loadUsers();
+            updateStats();
+            console.log('初期化完了');
+        }
+
+        /**
+         * イベントリスナーの設定
+         */
+        function setupEventListeners() {
+            document.getElementById('registerForm').addEventListener('submit', handleUserRegistration);
+            document.getElementById('refreshUsers').addEventListener('click', loadUsers);
+            document.getElementById('openSpreadsheet').addEventListener('click', openSpreadsheet);
+        }
+
+        /**
+         * ユーザー登録処理
+         */
+        async function handleUserRegistration(e) {
+            e.preventDefault();
+
+            const name = document.getElementById('userName').value.trim();
+            const email = document.getElementById('userEmail').value.trim();
+
+            if (!name) {
+                showError('名前を入力してください');
+                return;
+            }
+
+            try {
+                showLoading(true);
+
+                google.script.run
+                    .withSuccessHandler((user) => {
+                        showLoading(false);
+                        showSuccess(`${user.name} を登録しました`);
+                        document.getElementById('registerForm').reset();
+                        loadUsers();
+                        updateStats();
+                    })
+                    .withFailureHandler((error) => {
+                        showLoading(false);
+                        console.error('登録エラー:', error);
+                        showError('ユーザー登録に失敗しました');
+                    })
+                    .registerUser(name, email);
+
+            } catch (error) {
+                showLoading(false);
+                console.error('登録エラー:', error);
+                showError('ユーザー登録に失敗しました');
+            }
+        }
+
+        /**
+         * ユーザーリストの読み込み
+         */
+        async function loadUsers() {
+            try {
+                showLoading(true);
+
+                google.script.run
+                    .withSuccessHandler((users) => {
+                        displayUsers(users);
+                        showLoading(false);
+                    })
+                    .withFailureHandler((error) => {
+                        showLoading(false);
+                        console.error('読み込みエラー:', error);
+                        showError('ユーザーリストの読み込みに失敗しました');
+                    })
+                    .getAllUsers();
+
+            } catch (error) {
+                showLoading(false);
+                console.error('読み込みエラー:', error);
+                showError('ユーザーリストの読み込みに失敗しました');
+            }
+        }
+
+        /**
+         * ユーザーリストの表示
+         */
+        function displayUsers(users) {
+            const listContainer = document.getElementById('userList');
+
+            if (!users || users.length === 0) {
+                listContainer.innerHTML = '<p class="info-text">登録されているユーザーはいません</p>';
+                return;
+            }
+
+            listContainer.innerHTML = users.map(user => `
+                <div class="user-item">
+                    <div class="user-info">
+                        <div class="user-name">${escapeHtml(user.name)}</div>
+                        ${user.email ? `<div class="user-email">${escapeHtml(user.email)}</div>` : ''}
+                    </div>
+                    <div class="user-id">ID: ${user.id}</div>
+                </div>
+            `).join('');
+        }
+
+        /**
+         * 統計情報の更新
+         */
+        function updateStats() {
+            google.script.run
+                .withSuccessHandler((users) => {
+                    document.getElementById('totalUsers').textContent = users.length;
+                    // TODO: プレイ数の集計を実装
+                    document.getElementById('totalPlays').textContent = '0';
+                    document.getElementById('todayPlays').textContent = '0';
+                })
+                .withFailureHandler((error) => {
+                    console.error('統計情報の取得エラー:', error);
+                })
+                .getAllUsers();
+        }
+
+        /**
+         * スプレッドシートを開く
+         */
+        function openSpreadsheet() {
+            google.script.run
+                .withSuccessHandler((url) => {
+                    if (url) {
+                        window.open(url, '_blank');
+                    } else {
+                        showError('スプレッドシートが見つかりません。initializeSpreadsheet()を実行してください。');
+                    }
+                })
+                .withFailureHandler((error) => {
+                    console.error('スプレッドシートURL取得エラー:', error);
+                    showError('スプレッドシートを開けませんでした');
+                })
+                .getSpreadsheetUrl();
+        }
+
+        /**
+         * HTMLエスケープ
+         */
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        /**
+         * ローディング表示
+         */
+        function showLoading(show) {
+            document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none';
+        }
+
+        /**
+         * 成功メッセージ表示
+         */
+        function showSuccess(message) {
+            const messageArea = document.getElementById('messageArea');
+            const messageEl = document.createElement('div');
+            messageEl.className = 'message success-message';
+            messageEl.textContent = message;
+            messageArea.appendChild(messageEl);
+
+            setTimeout(() => {
+                messageEl.remove();
+            }, 3000);
+        }
+
+        /**
+         * エラーメッセージ表示
+         */
+        function showError(message) {
+            const messageArea = document.getElementById('messageArea');
+            const messageEl = document.createElement('div');
+            messageEl.className = 'message error-message';
+            messageEl.textContent = message;
+            messageArea.appendChild(messageEl);
+
+            setTimeout(() => {
+                messageEl.remove();
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
