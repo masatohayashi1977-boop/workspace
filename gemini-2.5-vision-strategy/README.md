@@ -1,8 +1,8 @@
-# Gemini 2.5 ビジョン戦略型プロジェクト企画自動生成 v4.0.0
+# Gemini ビジョン戦略型プロジェクト企画自動生成 v4.0.0
 
 ## 概要
 
-このスクリプトは、Google Apps Scriptで動作する、**Gemini 2.5 Flash**を活用したプロジェクト企画自動生成システムです。
+このスクリプトは、Google Apps Scriptで動作する、**Gemini最新版**を活用したプロジェクト企画自動生成システムです。
 
 社員のアイディアと企業の戦略情報（強み・弱み・課題・問題・3年後のビジョン）を統合し、実行可能なプロジェクト企画書を自動生成します。
 
@@ -10,9 +10,10 @@
 
 ### 🆕 v4.0.0の新機能
 
-1. **Gemini 2.5 Flash対応**
-   - 最新のGemini 2.5 Flash (gemini-2.5-flash-preview-04-17) を使用
+1. **Gemini最新モデル対応**
+   - 最新のGemini実験的モデル (gemini-exp-1206) を使用
    - より高度な推論能力と長文生成能力
+   - 他のモデルへの切り替えも簡単に可能
 
 2. **拡張された企業分析項目**
    - **解決すると良くなる「課題」** (AsPhototext列)
@@ -171,22 +172,29 @@
 
 ### モデル設定
 ```javascript
-const MODEL_NAME  = 'gemini-2.5-flash-preview-04-17';
+const MODEL_NAME  = 'gemini-exp-1206';  // 最新の実験的モデル
 const API_VERSION = 'v1beta';
 ```
+
+**利用可能な代替モデル:**
+- `gemini-exp-1206` - 最新の実験的モデル（推奨）
+- `gemini-2.0-flash-exp` - Gemini 2.0 Flash（安定版）
+- `gemini-2.0-flash-thinking-exp-1219` - 思考プロセス表示版
+- `gemini-1.5-flash-latest` - Gemini 1.5 Flash
+- `gemini-1.5-pro-latest` - Gemini 1.5 Pro（高精度版）
 
 ### 生成パラメータ
 ```javascript
 temperature: 0.7      // 創造性と一貫性のバランス
-topP: 0.85           // Gemini 2.5推奨値
+topP: 0.85           // 推奨値
 topK: 40             // 語彙選択の幅
 maxOutputTokens: 8192 // 長文出力対応
 ```
 
 ## v3.4.0からのアップグレード内容
 
-### 1. モデルのアップグレード
-- Gemini 2.0 Flash → **Gemini 2.5 Flash**
+### 1. モデルの更新
+- Gemini 2.0 Flash → **Gemini最新モデル** (gemini-exp-1206またはgemini-2.0-flash-exp)
 
 ### 2. 分析項目の拡張
 - 強み・弱みのみ → **強み・弱み・課題・問題・ビジョン**
@@ -225,7 +233,10 @@ maxOutputTokens: 8192 // 長文出力対応
 ### APIエラーが発生する場合
 1. APIキーが正しく設定されているか確認
 2. Google AI Studioでクォータを確認
-3. モデル名が正しいか確認（gemini-2.5-flash-preview-04-17）
+3. モデル名が正しいか確認（gemini-exp-1206）
+4. モデルが利用できない場合は、代替モデルに切り替え
+   - スクリプト内の `MODEL_NAME` を変更
+   - 例: `const MODEL_NAME = 'gemini-2.0-flash-exp';`
 
 ### 企画書が生成されない場合
 1. 「事前ワーク」シートのGroup名が一致しているか確認
@@ -247,11 +258,12 @@ Apache License 2.0
 ## 更新履歴
 
 ### v4.0.0 (2025-11-04)
-- Gemini 2.5 Flash対応
+- Gemini最新モデル対応 (gemini-exp-1206)
 - 課題・問題・ビジョン分析機能の追加
 - 優先順位付き分析の実装
 - ビジョン指向の企画書フォーマット
 - KPIの3階層化
+- 複数モデルのサポート
 
 ### v3.4.0 (2024-XX-XX)
 - Gemini 2.0 Flash対応

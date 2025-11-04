@@ -13,7 +13,7 @@
 // limitations under the License.
 
 // ============================================================
-// Gemini 2.5 powered プロジェクト企画自動生成スクリプト v4.0.0 (Gemini 2.5対応版)
+// Gemini 最新版 プロジェクト企画自動生成スクリプト v4.0.0 (ビジョン戦略対応版)
 // ============================================================
 
 // -----------------------------
@@ -24,15 +24,16 @@ const SELECTIONS_SHEET_NAME = 'Selections';
 const PRE_WORK_SHEET_NAME   = '事前ワーク';
 
 // -----------------------------
-// Gemini 2.5 Flash モデル設定
+// Gemini モデル設定
 // -----------------------------
-const MODEL_NAME  = 'gemini-2.5-flash-preview-04-17';  // ★更新: Gemini 2.5 Flash
-const API_VERSION = 'v1beta';                          // ★維持: v1betaのまま
+const MODEL_NAME  = 'gemini-exp-1206';  // ★最新の実験的モデル (2024年12月6日版)
+const API_VERSION = 'v1beta';           // ★維持: v1betaのまま
 
 // 代替オプション（利用可能なモデル）:
-// const MODEL_NAME  = 'gemini-2.0-flash-exp';                    // Gemini 2.0版（フォールバック用）
+// const MODEL_NAME  = 'gemini-2.0-flash-exp';                    // Gemini 2.0 Flash（安定版）
 // const MODEL_NAME  = 'gemini-2.0-flash-thinking-exp-1219';     // 思考プロセス表示版
-// const MODEL_NAME  = 'gemini-1.5-flash-latest';                // 従来版（フォールバック用）
+// const MODEL_NAME  = 'gemini-1.5-flash-latest';                // Gemini 1.5 Flash（従来版）
+// const MODEL_NAME  = 'gemini-1.5-pro-latest';                  // Gemini 1.5 Pro（高精度版）
 
 // -----------------------------
 // 列インデックス (変更なし)
@@ -126,7 +127,7 @@ TK-SUC004 継承・発展：文化・理念【優先度3】 企業理念,企業�
 // ============================================================
 function onOpen() {
   SpreadsheetApp.getUi()
-    .createMenu('🤖 AIプロジェクト企画 v4.0 (Gemini 2.5)')
+    .createMenu('🤖 AIプロジェクト企画 v4.0 (Gemini最新版)')
     .addItem('APIキーを設定', 'setApiKey')
     .addSeparator()
     .addItem('選択行の企画案を作成', 'generateForSelectedRow')
@@ -173,9 +174,11 @@ function checkModelInfo() {
 
   if (apiKey) {
     message += `\n\n利用可能な代替モデル:\n`;
-    message += `• gemini-2.5-flash-preview-04-17 (最新・推奨)\n`;
-    message += `• gemini-2.0-flash-exp (Gemini 2.0版)\n`;
-    message += `• gemini-1.5-flash-latest (従来版)`;
+    message += `• gemini-exp-1206 (最新・実験版)\n`;
+    message += `• gemini-2.0-flash-exp (Gemini 2.0 安定版)\n`;
+    message += `• gemini-2.0-flash-thinking-exp-1219 (思考プロセス版)\n`;
+    message += `• gemini-1.5-flash-latest (Gemini 1.5 Flash)\n`;
+    message += `• gemini-1.5-pro-latest (Gemini 1.5 Pro 高精度版)`;
   }
 
   ui.alert('モデル情報', message, ui.ButtonSet.OK);
@@ -291,7 +294,7 @@ function processSingleRow(sheet, rowNum) {
 
     const prompt = buildPrompt(visionDataText, cardTxt, speechTxt, playerName);
 
-    sheet.getRange(rowNum, TITLE_COL, 1, 4).setValue('🤖 Gemini 2.5 が思考中...');
+    sheet.getRange(rowNum, TITLE_COL, 1, 4).setValue('🤖 Gemini が思考中...');
     const responseText = callGeminiApi(prompt, apiKey);
     const parsed = parseResponse(responseText);
 
@@ -818,17 +821,17 @@ ${cardNameText}
 }
 
 // ============================================================
-// ★更新：Gemini 2.5 Flash API呼び出し
+// ★更新：Gemini API呼び出し
 // ============================================================
 function callGeminiApi(prompt, apiKey) {
   const url = `https://generativelanguage.googleapis.com/${API_VERSION}/models/${MODEL_NAME}:generateContent?key=${apiKey}`;
 
-  // ★Gemini 2.5用の最適化されたパラメータ
+  // ★最適化されたパラメータ
   const payload = {
     contents: [{ parts: [{ text: prompt }] }],
     generationConfig: {
       temperature: 0.7,        // ★創造性と一貫性のバランス
-      topP: 0.85,             // ★Gemini 2.5で推奨される値
+      topP: 0.85,             // ★推奨される値
       topK: 40,               // ★語彙選択の幅
       maxOutputTokens: 8192,  // ★長文出力対応
       candidateCount: 1       // ★単一候補で安定性重視
@@ -1366,14 +1369,14 @@ function createGroupProjectDocument(groupName, projects) {
     Logger.log('プロジェクト数: ' + projects.length);
 
     const timestamp = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy年MM月dd日');
-    const docTitle = `【${groupName}】戦略統合型プロジェクト案集_${timestamp}_Gemini2.5版`;
+    const docTitle = `【${groupName}】戦略統合型プロジェクト案集_${timestamp}_Gemini版`;
     const doc = DocumentApp.create(docTitle);
     const body = doc.getBody();
     body.clear();
 
     const titleParagraph = body.appendParagraph(`${groupName} 戦略統合型プロジェクト案集`);
     titleParagraph.setHeading(DocumentApp.ParagraphHeading.TITLE).setAlignment(DocumentApp.HorizontalAlignment.CENTER);
-    const subtitleParagraph = body.appendParagraph('Powered by Gemini 2.5 Flash');
+    const subtitleParagraph = body.appendParagraph(`Powered by ${MODEL_NAME}`);
     subtitleParagraph.setAlignment(DocumentApp.HorizontalAlignment.CENTER).setItalic(true).setForegroundColor('#666666');
     const dateParagraph = body.appendParagraph(`作成日: ${timestamp}`);
     dateParagraph.setAlignment(DocumentApp.HorizontalAlignment.RIGHT).setItalic(true);
