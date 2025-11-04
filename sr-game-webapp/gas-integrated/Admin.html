@@ -356,6 +356,18 @@
             <p class="info-text">データを直接確認・編集するにはスプレッドシートを開いてください。</p>
             <button id="openSpreadsheet" class="btn btn-secondary">スプレッドシートを開く</button>
         </div>
+
+        <!-- ブラウザデータ管理 -->
+        <div class="admin-section">
+            <h2>🗑️ ブラウザデータ管理</h2>
+            <p class="info-text">このブラウザに保存されているプレイヤー選択設定をクリアします。</p>
+            <button id="clearLocalStorage" class="btn btn-secondary" style="background: var(--danger-color); color: white;">
+                localStorage をクリア
+            </button>
+            <div id="localStorageInfo" class="info-text" style="margin-top: 1rem; padding: 1rem; background: var(--light-color); border-radius: 8px;">
+                <!-- localStorage情報がここに表示されます -->
+            </div>
+        </div>
     </div>
 
     <!-- ローディングオーバーレイ -->
@@ -391,6 +403,8 @@
             document.getElementById('registerForm').addEventListener('submit', handleUserRegistration);
             document.getElementById('refreshUsers').addEventListener('click', loadUsers);
             document.getElementById('openSpreadsheet').addEventListener('click', openSpreadsheet);
+            document.getElementById('clearLocalStorage').addEventListener('click', clearLocalStorage);
+            displayLocalStorageInfo();
         }
 
         /**
@@ -560,6 +574,39 @@
             setTimeout(() => {
                 messageEl.remove();
             }, 5000);
+        }
+
+        /**
+         * localStorage情報の表示
+         */
+        function displayLocalStorageInfo() {
+            const infoDiv = document.getElementById('localStorageInfo');
+            const selectedPlayers = localStorage.getItem('selectedPlayers');
+            const currentPlayerIndex = localStorage.getItem('currentPlayerIndex');
+
+            if (selectedPlayers) {
+                const players = JSON.parse(selectedPlayers);
+                const index = parseInt(currentPlayerIndex || '0');
+                infoDiv.innerHTML = `
+                    <strong>保存されている情報:</strong><br>
+                    選択プレイヤー: ${players.join(', ')}<br>
+                    現在のプレイヤー: ${players[index] || '(不明)'} (${index + 1}/${players.length})
+                `;
+            } else {
+                infoDiv.innerHTML = '<em>localStorage に保存されているデータはありません</em>';
+            }
+        }
+
+        /**
+         * localStorageのクリア
+         */
+        function clearLocalStorage() {
+            if (confirm('このブラウザに保存されているプレイヤー選択設定をクリアしますか？\n次回ゲーム画面を開いたときに、最初からプレイヤーを選択し直すことになります。')) {
+                localStorage.removeItem('selectedPlayers');
+                localStorage.removeItem('currentPlayerIndex');
+                displayLocalStorageInfo();
+                showSuccess('localStorage をクリアしました');
+            }
         }
     </script>
 </body>

@@ -592,7 +592,7 @@
 <body>
     <div class="container">
         <header class="header">
-            <a href="?page=admin" class="admin-link" title="管理画面">⚙️</a>
+            <a href="javascript:void(0)" class="admin-link" id="adminLink" title="管理画面">⚙️</a>
             <h1>🎮 社労士ゲーム</h1>
             <p class="subtitle">プレゼンテーション練習</p>
         </header>
@@ -830,6 +830,12 @@
         }
 
         function setupEventListeners() {
+            // 管理画面リンク
+            document.getElementById('adminLink').addEventListener('click', () => {
+                const baseUrl = window.location.origin + window.location.pathname;
+                window.location.href = baseUrl + '?page=admin';
+            });
+
             // ステップ0: プレイヤー登録選択
             document.getElementById('savePlayerSelection').addEventListener('click', savePlayerSelection);
 
