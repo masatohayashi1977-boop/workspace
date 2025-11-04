@@ -280,16 +280,17 @@
         /* 選択内容表示 */
         .selection-display {
             background: var(--light-color);
-            padding: 1.5rem;
-            border-radius: 12px;
+            padding: 2rem;
+            border-radius: 16px;
             margin-bottom: 2rem;
         }
 
         .selection-item {
-            margin-bottom: 1rem;
-            padding: 1rem;
+            margin-bottom: 1.5rem;
+            padding: 1.5rem;
             background: white;
-            border-radius: 8px;
+            border-radius: 12px;
+            text-align: center;
         }
 
         .selection-item:last-child {
@@ -297,15 +298,61 @@
         }
 
         .selection-label {
-            font-size: 0.875rem;
+            font-size: 1rem;
             color: var(--text-secondary);
-            margin-bottom: 0.25rem;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
         }
 
         .selection-value {
-            font-size: 1.2rem;
-            font-weight: 600;
+            font-size: 1.8rem;
+            font-weight: 700;
             color: var(--dark-color);
+            line-height: 1.4;
+        }
+
+        /* 提案サービスを特に大きく表示（タブレット横向き想定） */
+        #displayCard {
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: var(--primary-color);
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            letter-spacing: 0.02em;
+        }
+
+        /* タブレット横向き（768px以上）でさらに大きく */
+        @media (min-width: 768px) and (orientation: landscape) {
+            .selection-display {
+                padding: 3rem;
+            }
+
+            .selection-item {
+                padding: 2rem;
+            }
+
+            .selection-label {
+                font-size: 1.2rem;
+            }
+
+            .selection-value {
+                font-size: 2.2rem;
+            }
+
+            #displayCard {
+                font-size: 5rem;
+                line-height: 1.3;
+            }
+        }
+
+        /* 大きめのタブレット（1024px以上）横向き */
+        @media (min-width: 1024px) and (orientation: landscape) {
+            #displayCard {
+                font-size: 6rem;
+            }
+
+            .selection-value {
+                font-size: 2.5rem;
+            }
         }
 
         .btn {
